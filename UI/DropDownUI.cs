@@ -25,8 +25,8 @@ namespace ModSetting.UI {
             description = dropDownConfig.Description;
             label.text = description;
             options = dropDownConfig.Options;
-            currentOption = defaultOption = dropDownConfig.DefaultValue;
-            dropDownConfig.onValueChange += DropDownConfig_OnValueChange;
+            currentOption = defaultOption = dropDownConfig.Value;
+            dropDownConfig.OnValueChange += DropDownConfig_OnValueChange;
             onValueChange += dropDownConfig.SetValue;
             dropdown.onValueChanged.AddListener(Dropdown_OnValueChanged);
             UpdateDropDown();

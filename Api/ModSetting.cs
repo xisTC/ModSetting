@@ -99,12 +99,11 @@ namespace ModSetting.Api {
             return (bool)genericMethod.Invoke(null,new object[]{modInfo,key,value});
         }
 
-        public static bool RemoveUI<T>(ModInfo modInfo, string key) {
+        public static bool RemoveUI(ModInfo modInfo, string key) {
             if (!Available(modInfo,key)) return false;
             MethodInfo methodInfo = GetStaticPublicMethodInfo(REMOVE_UI);
             if (methodInfo == null) return false;
-            MethodInfo genericMethod = methodInfo.MakeGenericMethod(typeof(T));
-            return (bool)genericMethod.Invoke(null,new object[]{modInfo,key});
+            return (bool)methodInfo.Invoke(null,new object[]{modInfo,key});
         }
 
         public static bool RemoveMod(ModInfo modInfo) {

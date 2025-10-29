@@ -37,8 +37,8 @@ namespace ModSetting.UI {
             label.text = keyBindingConfig.Description;
             defaultKeyCode = keyBindingConfig.KeyCode;
             this.keyBindingManager = keyBindingManager;
-            onValueChange += keyBindingConfig.SetKeyCode;
-            keyBindingConfig.onValueChange +=SetNewKey;
+            onValueChange += keyBindingConfig.SetValue;
+            keyBindingConfig.OnValueChange +=SetNewKey;
             keyBindingManager.AddKeyCode(newKeyCode,this);
             SetNewKey(keyBindingConfig.KeyCode);
         }

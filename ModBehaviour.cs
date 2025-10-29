@@ -62,7 +62,7 @@ namespace ModSetting {
             List<string> options, string defaultValue,Action<string> onValueChange=null) {
             AddAction(() => {
                 DropDownConfig dropDownConfig = new DropDownConfig(key, description, options, defaultValue);
-                ConfigManager.AddDropDownList(modInfo, dropDownConfig);
+                ConfigManager.AddConfig(modInfo, dropDownConfig);
                 globalPanelUI.AddDropDownList(modInfo,dropDownConfig,onValueChange);
                 mainMenuPanelUI.AddDropDownList(modInfo,dropDownConfig,onValueChange);
             });
@@ -72,7 +72,7 @@ namespace ModSetting {
             float defaultValue, Vector2 sliderRange,Action<float> onValueChange=null) {
             AddAction(() => {
                 SliderConfig sliderConfig = new SliderConfig(key, description,defaultValue,sliderRange);
-                ConfigManager.AddSlider(modInfo, sliderConfig);
+                ConfigManager.AddConfig(modInfo, sliderConfig);
                 globalPanelUI.AddSlider(modInfo,sliderConfig,onValueChange);
                 mainMenuPanelUI.AddSlider(modInfo,sliderConfig,onValueChange);
             });
@@ -82,7 +82,7 @@ namespace ModSetting {
             bool enable, Action<bool> onValueChange = null) {
             AddAction(() => {
                 ToggleConfig toggleConfig = new ToggleConfig(key, description, enable);
-                ConfigManager.AddToggle(modInfo, toggleConfig);
+                ConfigManager.AddConfig(modInfo, toggleConfig);
                 globalPanelUI.AddToggle(modInfo,toggleConfig,onValueChange);
                 mainMenuPanelUI.AddToggle(modInfo,toggleConfig,onValueChange);
             });
@@ -92,7 +92,7 @@ namespace ModSetting {
             KeyCode keyCode,Action<KeyCode> onValueChange=null) {
             AddAction(() => {
                 KeyBindingConfig keyBindingConfig = new KeyBindingConfig(key, description, keyCode);
-                ConfigManager.AddKeybinding(modInfo, keyBindingConfig);
+                ConfigManager.AddConfig(modInfo, keyBindingConfig);
                 globalPanelUI.AddKeybinding(modInfo, keyBindingConfig,onValueChange);
                 mainMenuPanelUI.AddKeybinding(modInfo, keyBindingConfig,onValueChange);
             });
@@ -100,10 +100,10 @@ namespace ModSetting {
 
         public static T GetValue<T>(ModInfo info, string key) => ConfigManager.GetValue<T>(info, key);
         public static bool SetValue<T>(ModInfo info, string key,T value) => ConfigManager.SetValue<T>(info, key,value);
-        public static bool RemoveUI<T>(ModInfo info, string key) {
+        public static bool RemoveUI(ModInfo info, string key) {
             if (!isInit || !globalPanelUI.IsInit||!mainMenuPanelUI.IsInit) return false;
             if (globalPanelUI.RemoveUI(info,key)) {
-                if (ConfigManager.RemoveUI<T>(info, key)&&mainMenuPanelUI.RemoveUI(info,key)) {
+                if (ConfigManager.RemoveUI(info, key)&&mainMenuPanelUI.RemoveUI(info,key)) {
                     return true;
                 }
                 Debug.LogError("UI和ConfigManager不同步");

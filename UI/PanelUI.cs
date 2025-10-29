@@ -25,13 +25,6 @@ namespace ModSetting.UI {
         private KeyBindingManager keyBindingManager;
         public bool IsInit { get; protected set; }
         public abstract void Init();
-
-        private void Update() {
-            if (Input.GetKeyDown(KeyCode.T)) {
-                Debug.Log($"modContent状态:{modContent.activeSelf}");   
-            }
-        }
-
         protected void InitTab() {
             Debug.Log("开始创建Mod设置标签页:" + optionsPanel.gameObject.scene.name);
             List<OptionsPanel_TabButton> tabButtons =

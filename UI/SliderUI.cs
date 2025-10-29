@@ -31,10 +31,10 @@ namespace ModSetting.UI {
         public void Setup(SliderConfig sliderConfig) {
             description = sliderConfig.Description;
             label.text =description;
-            currentValue = sliderConfig.DefaultValue;
+            currentValue = sliderConfig.Value;
             slider.minValue = sliderConfig.SliderRange.x;
             slider.maxValue = sliderConfig.SliderRange.y;
-            sliderConfig.onValueChange +=SliderConfig_OnValueChange ;
+            sliderConfig.OnValueChange +=SliderConfig_OnValueChange ;
             onValueChange += sliderConfig.SetValue;
             UpdateValue();
         }

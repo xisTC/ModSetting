@@ -10,40 +10,13 @@ namespace ModSetting.Config {
     // todo 做成保存文件的类，加载保存文件的数据接口
     public static class ConfigManager {
         private static readonly Dictionary<ulong, ModConfig> configs = new Dictionary<ulong, ModConfig>();
-        public static void AddDropDownList(ModInfo modInfo,DropDownConfig dropDownConfig) {
+        public static void AddConfig(ModInfo modInfo,IConfig config) {
             if (configs.TryGetValue(modInfo.publishedFileId,out var modConfig)) {
-                modConfig.AddDropDownList(dropDownConfig);
+                modConfig.AddConfig(config);
             } else {
-                ModConfig config = new ModConfig(modInfo);
-                config.AddDropDownList(dropDownConfig);
-                configs.Add(modInfo.publishedFileId,config);
-            }
-        }
-        public static void AddSlider(ModInfo modInfo,SliderConfig sliderConfig) {
-            if (configs.TryGetValue(modInfo.publishedFileId,out var modConfig)) {
-                modConfig.AddSlider(sliderConfig);
-            } else {
-                ModConfig config = new ModConfig(modInfo);
-                config.AddSlider(sliderConfig);
-                configs.Add(modInfo.publishedFileId,config);
-            }
-        }
-        public static void AddToggle(ModInfo modInfo,ToggleConfig toggleConfig) {
-            if (configs.TryGetValue(modInfo.publishedFileId,out var modConfig)) {
-                modConfig.AddToggle(toggleConfig);
-            } else {
-                ModConfig config = new ModConfig(modInfo);
-                config.AddToggle(toggleConfig);
-                configs.Add(modInfo.publishedFileId,config);
-            }
-        }
-        public static void AddKeybinding(ModInfo modInfo,KeyBindingConfig keyBindingConfig) {
-            if (configs.TryGetValue(modInfo.publishedFileId,out var modConfig)) {
-                modConfig.AddKeybinding(keyBindingConfig);
-            } else {
-                ModConfig config = new ModConfig(modInfo);
-                config.AddKeybinding(keyBindingConfig);
-                configs.Add(modInfo.publishedFileId,config);
+                modConfig = new ModConfig(modInfo);
+                modConfig.AddConfig(config);
+                configs.Add(modInfo.publishedFileId,modConfig);
             }
         }
         public static T GetValue<T>(ModInfo info,string key) {
@@ -63,9 +36,9 @@ namespace ModSetting.Config {
             return false;
         }
 
-        public static bool RemoveUI<T>(ModInfo info, string key) {
+        public static bool RemoveUI(ModInfo info, string key) {
             if (configs.TryGetValue(info.publishedFileId,out var modConfig)) {
-                return modConfig.RemoveUI<T>(key);
+                return modConfig.RemoveUI(key);
             } else {
                 Debug.LogError($"找不到此{info.displayName}的配置");
                 return false;

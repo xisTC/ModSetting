@@ -622,6 +622,7 @@
         <Compile Include="Config\Data\ConfigData.cs" />
         <Compile Include="Config\Data\ModConfigData.cs" />
         <Compile Include="Config\DropDownConfig.cs" />
+        <Compile Include="Config\IConfig.cs" />
         <Compile Include="Config\KeyBindingConfig.cs" />
         <Compile Include="Config\ModConfig.cs" />
         <Compile Include="Config\SliderConfig.cs" />

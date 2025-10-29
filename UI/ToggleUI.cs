@@ -27,8 +27,8 @@ namespace ModSetting.UI {
         public void Setup(ToggleConfig toggleConfig) {
             label.text = toggleConfig.Description;
             enable = toggleConfig.Enable;
-            toggleConfig.onValueChange += ToggleConfig_OnValueChange;
-            onValueChange += toggleConfig.SetEnable;
+            toggleConfig.OnValueChange += ToggleConfig_OnValueChange;
+            onValueChange += toggleConfig.SetValue;
             UpdateText();
         }
 

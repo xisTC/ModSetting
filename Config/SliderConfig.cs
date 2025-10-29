@@ -1,22 +1,37 @@
 using System;
+using ModSetting.Config.Data;
 using UnityEngine;
 
 namespace ModSetting.Config {
-    public class SliderConfig {
-        public string Key { get; private set; }
-        public string Description { get; private set; }
-        public float DefaultValue { get; private set; }
+    public class SliderConfig: IConfig{
+        public string Key { get; }
+        public string Description { get; }
+        public Type ValueType { get; }
+        public Type ConfigDataType { get; }
+        public float Value { get; private set; }
         public Vector2 SliderRange { get; private set; }
-        public event Action<float> onValueChange;
-        public SliderConfig(string key, string description, float defaultValue, Vector2 sliderRange) {
+        public event Action<float> OnValueChange;
+        public SliderConfig(string key, string description, float value, Vector2 sliderRange) {
             Key = key;
             Description = description;
-            DefaultValue = defaultValue;
+            Value = value;
             SliderRange = sliderRange;
+            ValueType = value.GetType();
+            ConfigDataType = typeof(SliderConfigData);
+        }
+
+        public object GetValue() => Value;
+
+        public void SetValue(object value) {
+            if (value.GetType() != ValueType) {
+                Debug.LogError($"类型不匹配:{ValueType}和{value.GetType()},无法赋值");
+                return;
+            }
+            SetValue((float)value);
         }
         public void SetValue(float value) {
-            DefaultValue = value;
-            onValueChange?.Invoke(value);
+            Value = value;
+            OnValueChange?.Invoke(value);
         }
     }
 }
