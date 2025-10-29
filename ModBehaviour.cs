@@ -4,14 +4,7 @@ using Duckov.Modding;
 using ModSetting.Config;
 using ModSetting.UI;
 using UnityEngine;
-/* TODO Init函数只有在OnMainMenuAwake时调用才能正常的创建tab，其余时候主动调用Init
-        函数会出现，点击tabButton无反应的情况。
-        目前想到的解决办法:
-        1.将OptionsPanel_TabButton中的字段交给我们自己管理，并且需要管理
-        OptionsPanel的字段private List<OptionsPanel_TabButton> tabButtons;
-        2.直接使用内置的SetSelection函数，不需要将modTabButton设置到OptionsPanel
-        的tabButtons中去
-*/
+
 namespace ModSetting {
     public class ModBehaviour : Duckov.Modding.ModBehaviour{
         private static bool isInit;
@@ -41,8 +34,6 @@ namespace ModSetting {
                 if (!isInit) {
                     globalPanelUI = gameObject.AddComponent<GlobalPanelUI>();
                     mainMenuPanelUI = gameObject.AddComponent<MainMenuPanelUI>();
-                    globalPanelUI.Setup(info.preview);
-                    mainMenuPanelUI.Setup(info.preview);
                     isInit = true;
                 } else {
                     mainMenuPanelUI.Init();

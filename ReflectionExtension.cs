@@ -25,8 +25,12 @@ namespace ModSetting {
             return true;
         }
 
-        public static void InvokeInstanceMethod(object instance, string methodName, object[] parameters = null) {
-            MethodInfo methodInfo = instance.GetType().GetMethod(methodName);
+        public static void InvokeInstanceMethod(object instance, string methodName, object[] parameters = null,
+            BindingFlags bindingFlags = BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance) {
+            MethodInfo methodInfo = instance.GetType().GetMethod(methodName,bindingFlags);
+            if (methodInfo == null) {
+                Debug.Log(methodName+"=>执行方法失败，方法信息为null:");
+            }
             methodInfo?.Invoke(instance, parameters);
         }
     }
