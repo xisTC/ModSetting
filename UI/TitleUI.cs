@@ -1,10 +1,9 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
 
-namespace Test {
+namespace ModSetting.UI {
     public class TitleUI : MonoBehaviour {
         [SerializeField]private TextMeshProUGUI label;
         [SerializeField]private Image icon;
