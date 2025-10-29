@@ -105,6 +105,18 @@ namespace ModSetting.Config {
             return keyBindingConfigDatas;
         }
 
+        public List<InputConfigData> GetInputConfigDatas() {
+            List<InputConfigData> inputConfigDatas = new List<InputConfigData>();
+            List<InputConfig> inputConfigs = Filter<InputConfigData,InputConfig>();
+            foreach (InputConfig inputConfig in inputConfigs) {
+                InputConfigData inputConfigData = new InputConfigData(
+                    inputConfig.Key,
+                    inputConfig.Description,
+                    inputConfig.Value);
+                inputConfigDatas.Add(inputConfigData);
+            }
+            return inputConfigDatas;
+        }
         private List<K> Filter<T,K>() {
             List<K> list = new List<K>();
             foreach (IConfig config in allConfigs.Values) {

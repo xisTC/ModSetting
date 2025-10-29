@@ -15,7 +15,7 @@ namespace ModSetting.Config {
             Key = key;
             Description = description;
             KeyCode = keyCode;
-            ValueType = keyCode.GetType();
+            ValueType = typeof(KeyCode);
             ConfigDataType = typeof(KeyBindingConfigData);
         }
 

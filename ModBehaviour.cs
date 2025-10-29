@@ -11,7 +11,7 @@ namespace ModSetting {
         private static GlobalPanelUI globalPanelUI;
         private static MainMenuPanelUI mainMenuPanelUI;
         private static readonly Queue<Action> actionQueue = new Queue<Action>();
-        public static float Version { get; private set; } = 0.1f;
+        public static float Version= 0.1f;
         private void OnEnable() {
             Debug.Log("ModSetting:启用");
             MainMenu.OnMainMenuAwake += Init;
@@ -30,8 +30,8 @@ namespace ModSetting {
         }
         private void Init() {
             if (FindAnyObjectByType(typeof(MainMenu)) != null) {
-                Debug.Log("找到主菜单");
                 if (!isInit) {
+                    Debug.Log("开始初始化mod设置");
                     globalPanelUI = gameObject.AddComponent<GlobalPanelUI>();
                     mainMenuPanelUI = gameObject.AddComponent<MainMenuPanelUI>();
                     isInit = true;
@@ -47,19 +47,20 @@ namespace ModSetting {
                 Action action = actionQueue.Dequeue();
                 action?.Invoke();
             }
-            Debug.Log("配置完毕");
+            Debug.Log("添加完毕");
         }
          private static void AddAction(Action addConfigAction) {
             if (isInit&&globalPanelUI.IsInit && mainMenuPanelUI.IsInit) {
                 addConfigAction?.Invoke();
             } else {
                 actionQueue.Enqueue(addConfigAction);
-                Debug.Log($"配置项已加入队列，等待mod菜单初始化。当前队列长度: {actionQueue.Count}");
+                Debug.Log($"加入队列，等待mod菜单初始化。当前队列长度: {actionQueue.Count}");
             }
         }
 
         public static void AddDropDownList(ModInfo modInfo,string key,string description,
             List<string> options, string defaultValue,Action<string> onValueChange=null) {
+            if (!options.Contains(defaultValue)) options.Add(defaultValue);
             AddAction(() => {
                 DropDownConfig dropDownConfig = new DropDownConfig(key, description, options, defaultValue);
                 ConfigManager.AddConfig(modInfo, dropDownConfig);
@@ -70,6 +71,8 @@ namespace ModSetting {
 
         public static void AddSlider(ModInfo modInfo,string key,string description,
             float defaultValue, Vector2 sliderRange,Action<float> onValueChange=null) {
+            if (sliderRange.x > sliderRange.y) sliderRange = new Vector2(sliderRange.y, sliderRange.x);
+            defaultValue = Math.Clamp(defaultValue, sliderRange.x, sliderRange.y);
             AddAction(() => {
                 SliderConfig sliderConfig = new SliderConfig(key, description,defaultValue,sliderRange);
                 ConfigManager.AddConfig(modInfo, sliderConfig);
@@ -97,22 +100,46 @@ namespace ModSetting {
                 mainMenuPanelUI.AddKeybinding(modInfo, keyBindingConfig,onValueChange);
             });
         }
-
-        public static T GetValue<T>(ModInfo info, string key) => ConfigManager.GetValue<T>(info, key);
-        public static bool SetValue<T>(ModInfo info, string key,T value) => ConfigManager.SetValue<T>(info, key,value);
-        public static bool RemoveUI(ModInfo info, string key) {
-            if (!isInit || !globalPanelUI.IsInit||!mainMenuPanelUI.IsInit) return false;
-            if (globalPanelUI.RemoveUI(info,key)) {
-                if (ConfigManager.RemoveUI(info, key)&&mainMenuPanelUI.RemoveUI(info,key)) {
-                    return true;
-                }
-                Debug.LogError("UI和ConfigManager不同步");
-            }
-            return false;
+        public static void AddInput(ModInfo modInfo,string key,string description,
+            string defaultValue,int characterLimit=40,Action<string> onValueChange=null) {
+            AddAction(() => {
+                InputConfig inputConfig = new InputConfig(key,description,defaultValue,characterLimit);
+                ConfigManager.AddConfig(modInfo, inputConfig);
+                globalPanelUI.AddInput(modInfo, inputConfig,onValueChange);
+                mainMenuPanelUI.AddInput(modInfo, inputConfig,onValueChange);
+            });
         }
-        public static bool RemoveMod(ModInfo info) {
-            if (!isInit || !globalPanelUI.IsInit||!mainMenuPanelUI.IsInit) return false;
-            return globalPanelUI.RemoveTitle(info)&& mainMenuPanelUI.RemoveTitle(info) &&ConfigManager.RemoveMod(info);
+        public static void GetValue<T>(ModInfo info, string key,Action<T> callback=null) {
+            AddAction(() => {
+                T value = ConfigManager.GetValue<T>(info, key);
+                callback?.Invoke(value);
+            });
+        }
+
+        public static void SetValue<T>(ModInfo info, string key,T value,Action<bool> callback=null) {
+            AddAction(() => {
+                bool result = ConfigManager.SetValue<T>(info, key, value);
+                callback?.Invoke(result);
+            });
+        }
+
+        public static void RemoveUI(ModInfo info, string key,Action<bool> callback=null) {
+            AddAction(() => {
+                if (globalPanelUI.RemoveUI(info,key)) {
+                    if (ConfigManager.RemoveUI(info, key)&&mainMenuPanelUI.RemoveUI(info,key)) {
+                        callback?.Invoke(true);
+                        return;
+                    }
+                    Debug.LogError("UI和ConfigManager不同步");
+                }
+                callback?.Invoke(false);
+            });
+        }
+        public static void RemoveMod(ModInfo info,Action<bool> callback=null) {
+            AddAction(() => {
+                bool result = globalPanelUI.RemoveTitle(info)&& mainMenuPanelUI.RemoveTitle(info) &&ConfigManager.RemoveMod(info);
+                callback?.Invoke(result);
+            });
         }
     }
 }

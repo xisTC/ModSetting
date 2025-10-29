@@ -623,6 +623,7 @@
         <Compile Include="Config\Data\ModConfigData.cs" />
         <Compile Include="Config\DropDownConfig.cs" />
         <Compile Include="Config\IConfig.cs" />
+        <Compile Include="Config\InputConfig.cs" />
         <Compile Include="Config\KeyBindingConfig.cs" />
         <Compile Include="Config\ModConfig.cs" />
         <Compile Include="Config\SliderConfig.cs" />
@@ -633,6 +634,7 @@
         <Compile Include="ReflectionExtension.cs" />
         <Compile Include="UI\DropDownUI.cs" />
         <Compile Include="UI\GlobalPanelUI.cs" />
+        <Compile Include="UI\InputUI.cs" />
         <Compile Include="UI\KeyBindingUI.cs" />
         <Compile Include="UI\MainMenuPanelUI.cs" />
         <Compile Include="UI\PanelUI.cs" />

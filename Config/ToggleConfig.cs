@@ -16,7 +16,7 @@ namespace ModSetting.Config {
             Key = key;
             Description = description;
             Enable = enable;
-            ValueType = enable.GetType();
+            ValueType = typeof(bool);
             ConfigDataType = typeof(ToggleConfigData);
         }
 

@@ -16,7 +16,7 @@ namespace ModSetting.Config {
             Description = description;
             Value = value;
             SliderRange = sliderRange;
-            ValueType = value.GetType();
+            ValueType = typeof(float);
             ConfigDataType = typeof(SliderConfigData);
         }
 
@@ -26,6 +26,9 @@ namespace ModSetting.Config {
             if (value.GetType() != ValueType) {
                 Debug.LogError($"类型不匹配:{ValueType}和{value.GetType()},无法赋值");
                 return;
+            }
+            if ((float)value < SliderRange.x || (float)value > SliderRange.y) {
+                Debug.LogError("Slider不能超出范围:"+(float)value);   
             }
             SetValue((float)value);
         }

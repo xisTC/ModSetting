@@ -11,16 +11,18 @@ namespace ModSetting.Config.Data {
         public List<SliderConfigData> sliderConfigDatas;
         public List<ToggleConfigData> toggleConfigDatas;
         public List<KeyBindingConfigData> keyBindingConfigDatas;
+        public List<InputConfigData> inputConfigDatas;
 
         public ModConfigData(string displayModName, ulong modId, List<DropDownConfigData> dropDownConfigDatas, 
             List<SliderConfigData> sliderConfigDatas, List<ToggleConfigData> toggleConfigDatas,
-            List<KeyBindingConfigData> keyBindingConfigDatas) {
+            List<KeyBindingConfigData> keyBindingConfigDatas,List<InputConfigData> inputConfigDatas) {
             this.displayModName = displayModName;
             this.modId = modId;
             this.dropDownConfigDatas = dropDownConfigDatas;
             this.sliderConfigDatas = sliderConfigDatas;
             this.toggleConfigDatas = toggleConfigDatas;
             this.keyBindingConfigDatas = keyBindingConfigDatas;
+            this.inputConfigDatas = inputConfigDatas;
         }
     }
 
@@ -76,6 +78,18 @@ namespace ModSetting.Config.Data {
             Key = key;
             Description = description;
             KeyCode = keyCode.ToString();
+        }
+    }
+    [Serializable]
+    public struct InputConfigData {
+        public string Key { get; private set; }
+        public string Description { get; private set; }
+        public string DefaultValue { get; private set; }
+
+        public InputConfigData(string key, string description, string defaultValue) {
+            Key = key;
+            Description = description;
+            DefaultValue = defaultValue;
         }
     }
 }

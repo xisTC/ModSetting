@@ -7,7 +7,6 @@ using Newtonsoft.Json;
 using UnityEngine;
 
 namespace ModSetting.Config {
-    // todo 做成保存文件的类，加载保存文件的数据接口
     public static class ConfigManager {
         private static readonly Dictionary<ulong, ModConfig> configs = new Dictionary<ulong, ModConfig>();
         public static void AddConfig(ModInfo modInfo,IConfig config) {
@@ -23,7 +22,7 @@ namespace ModSetting.Config {
             if (configs.TryGetValue(info.publishedFileId,out var modConfig)) {
                 return modConfig.GetValue<T>(key);
             } else {
-                Debug.LogError($"找不到此{info.displayName}的配置");
+                Debug.LogError($"找不到此{info.displayName}的值,key:"+key);
                 return default;
             }
         }
@@ -32,17 +31,16 @@ namespace ModSetting.Config {
             if (configs.TryGetValue(info.publishedFileId,out var modConfig)) {
                 return modConfig.SetValue(key,value);
             }
-            Debug.LogError($"找不到此{info.displayName}的配置");
+            Debug.LogError($"找不到此{info.displayName}的配置,无法设置值");
             return false;
         }
 
         public static bool RemoveUI(ModInfo info, string key) {
             if (configs.TryGetValue(info.publishedFileId,out var modConfig)) {
                 return modConfig.RemoveUI(key);
-            } else {
-                Debug.LogError($"找不到此{info.displayName}的配置");
-                return false;
             }
+            Debug.LogError($"找不到此{info.displayName}的UI,key:"+key);
+            return false;
         }
         public static bool RemoveMod(ModInfo info) {
             if (configs.Remove(info.publishedFileId)) {
@@ -74,7 +72,8 @@ namespace ModSetting.Config {
                     modConfig.GetDropDownConfigDatas(),
                     modConfig.GetSliderConfigDatas(),
                     modConfig.GetToggleConfigDatas(),
-                    modConfig.GetKeyBindingConfigDatas());
+                    modConfig.GetKeyBindingConfigDatas(),
+                    modConfig.GetInputConfigDatas());
                 modConfigDatas.Add(modConfigData);
             }
             ConfigData configData = new ConfigData(modConfigDatas);
@@ -89,11 +88,11 @@ namespace ModSetting.Config {
             jsonSerializer.Serialize(stringWriter, configData);
             string json = stringWriter.ToString();
             File.WriteAllText(configPath, json);
-            Debug.Log("创建完成：" + json);
+            Debug.Log("创建完成");
         }
 
         private static string GetConfigPath() {
-            string assemblyLocation = typeof(Duckov.Modding.ModBehaviour).Assembly.Location;
+            string assemblyLocation = typeof(ModBehaviour).Assembly.Location;
             string directory = Path.GetDirectoryName(assemblyLocation);
             if (string.IsNullOrEmpty(directory)) {
                 directory = AppContext.BaseDirectory ?? ".";

@@ -1,24 +1,29 @@
 using System;
-using System.Collections.Generic;
 using ModSetting.Config.Data;
 using UnityEngine;
 
 namespace ModSetting.Config {
-    public class DropDownConfig: IConfig {
+    public class InputConfig : IConfig {
         public string Key { get; }
+
         public string Description { get; }
+
         public Type ValueType { get; }
+
         public Type ConfigDataType { get; }
+
         public string Value { get; private set; }
-        public List<string> Options { get; private set; }
+        public int CharacterLimit { get;}
+        
         public event Action<string> OnValueChange;
-        public DropDownConfig(string key, string description, List<string> options, string value) {
+
+        public InputConfig(string key, string description, string value, int characterLimit) {
             Key = key;
             Description = description;
-            Options = options;
             Value = value;
+            CharacterLimit = characterLimit;
             ValueType = typeof(string);
-            ConfigDataType = typeof(DropDownConfigData);
+            ConfigDataType = typeof(InputConfigData);
         }
 
         public object GetValue() => Value;
@@ -26,10 +31,6 @@ namespace ModSetting.Config {
         public void SetValue(object value) {
             if (value.GetType() != ValueType) {
                 Debug.LogError($"类型不匹配:{ValueType}和{value.GetType()},无法赋值");
-                return;
-            }
-            if (!Options.Contains((string)value)) {
-                Debug.LogError("DropDown不能超出范围:"+value);
                 return;
             }
             Value = (string)value;

@@ -20,13 +20,13 @@ namespace ModSetting.UI {
         private ToggleUI togglePrefab;
         private KeyBindingUI keyBindEntryPrefab;
         private TitleUI titlePrefab;
+        private InputUI inputPrefab;
         protected float titleHeight;
-        protected Dictionary<ulong, TitleUI> titleUiDic = new Dictionary<ulong, TitleUI>();
+        private readonly Dictionary<ulong, TitleUI> titleUiDic = new Dictionary<ulong, TitleUI>();
         private KeyBindingManager keyBindingManager;
         public bool IsInit { get; protected set; }
         public abstract void Init();
         protected void InitTab() {
-            Debug.Log("开始创建Mod设置标签页:" + optionsPanel.gameObject.scene.name);
             List<OptionsPanel_TabButton> tabButtons =
                 ReflectionExtension.GetInstanceField<List<OptionsPanel_TabButton>>(optionsPanel, "tabButtons");
             if (tabButtons == null) {
@@ -80,9 +80,7 @@ namespace ModSetting.UI {
                     Destroy(localizor);
                 tabName.SetText("Mod设置");
             }
-            Debug.Log($"初始化modTabButton:{modTabButton},初始化modContent:{modContent}");
         }
-
         #region InitPrefab
 
         protected void InitPrefab() {
@@ -91,12 +89,16 @@ namespace ModSetting.UI {
                 .Skip(1)
                 .FirstOrDefault(item => item != null);
             CreateDropDownPrefab(optionDropDown);
-            CreateSliderPrefab();
+            CreateTitlePrefab(optionDropDown);
+            OptionsUIEntry_Slider optionSlider = optionsPanel.gameObject
+                .GetComponentsInChildren<OptionsUIEntry_Slider>(true)
+                .FirstOrDefault(item => item != null);
+            CreateSliderPrefab(optionSlider);
+            CreateInputPrefab(optionSlider);
             UIKeybindingEntry keybindingEntry = optionsPanel.gameObject.GetComponentsInChildren<UIKeybindingEntry>(true)
                 .FirstOrDefault(item => item != null);
             CreateKeyBindPrefab(keybindingEntry);
             CreateTogglePrefab(keybindingEntry);
-            CreateTitlePrefab(optionDropDown);
             DontDestroyOnLoad(dropDownPrefab);
             DontDestroyOnLoad(sliderPrefab);
             DontDestroyOnLoad(keyBindEntryPrefab);
@@ -153,10 +155,23 @@ namespace ModSetting.UI {
             }
         }
 
-        private void CreateSliderPrefab() {
-            OptionsUIEntry_Slider optionSlider = optionsPanel.gameObject
-                .GetComponentsInChildren<OptionsUIEntry_Slider>(true)
-                .FirstOrDefault(item => item != null);
+        private void CreateInputPrefab(OptionsUIEntry_Slider optionSlider) {
+            if (optionSlider == null) return;
+            OptionsUIEntry_Slider sliderClone = Instantiate(optionSlider);
+            if (sliderClone != null) {
+                TextMeshProUGUI label = ReflectionExtension.GetInstanceField<TextMeshProUGUI>(sliderClone, "label");
+                Slider slider = ReflectionExtension.GetInstanceField<Slider>(sliderClone, "slider");
+                TMP_InputField inputField =
+                    ReflectionExtension.GetInstanceField<TMP_InputField>(sliderClone, "valueField");
+                GameObject sliderGameObject = sliderClone.gameObject;
+                DestroyImmediate(sliderClone);
+                Destroy(slider.gameObject);
+                inputPrefab = sliderGameObject.AddComponent<InputUI>();
+                inputPrefab.Init(label,inputField,"默认输入文本","默认值");
+            }
+        }
+
+        private void CreateSliderPrefab(OptionsUIEntry_Slider optionSlider) {
             if (optionSlider == null) return;
             OptionsUIEntry_Slider entrySlider = Instantiate(optionSlider);
             if (entrySlider != null) {
@@ -171,7 +186,6 @@ namespace ModSetting.UI {
                 Debug.Log("成功创建slider预制体");
             }
         }
-
         private void CreateDropDownPrefab(OptionsUIEntry_Dropdown optionDropDown) {
             if (optionDropDown == null) return;
             OptionsUIEntry_Dropdown dropDown = Instantiate(optionDropDown);
@@ -227,7 +241,14 @@ namespace ModSetting.UI {
             AddUnderTheTitle(modInfo, keyBindingConfig.Key, keyBindingUI.gameObject);
             return true;
         }
-
+        public bool AddInput(ModInfo modInfo, InputConfig inputConfig, Action<string> onValueChange) {
+            if (modContent == null || inputPrefab == null) return false;
+            InputUI inputUI = Instantiate(inputPrefab, modContent.transform);
+            inputUI.Setup(inputConfig);
+            inputUI.onValueChange += onValueChange;
+            AddUnderTheTitle(modInfo, inputConfig.Key, inputUI.gameObject);
+            return true;
+        }
         public bool RemoveUI(ModInfo modInfo, string key) {
             if (titleUiDic.TryGetValue(modInfo.publishedFileId, out var titleUI)) {
                 keyBindingManager.RemoveModKeyBinding(modInfo, key);

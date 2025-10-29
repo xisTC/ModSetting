@@ -18,6 +18,7 @@ namespace ModSetting.UI {
                 InitTab();
                 InitPrefab();
                 IsInit = true;
+                Debug.Log("mod设置初始化完毕");
             } else {
                 ResetTab();
             }
