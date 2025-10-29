@@ -1,0 +1,13 @@
+using System;
+using System.Collections.Generic;
+using Test;
+
+namespace ModSetting.Config.Data {
+    [Serializable]
+    public struct ConfigData {
+        public List<ModConfigData> configDatas;
+        public ConfigData(List<ModConfigData> configDatas) {
+            this.configDatas = configDatas;
+        }
+    }
+}

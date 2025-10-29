@@ -1,0 +1,52 @@
+﻿using System;
+using System.Collections.Generic;
+using ModSetting.Config;
+using TMPro;
+using UnityEngine;
+
+namespace ModSetting.UI {
+    public class DropDownUI : MonoBehaviour {
+        [SerializeField]private TextMeshProUGUI label;
+        [SerializeField]private TMP_Dropdown dropdown;
+        private List<string> options;
+        private string currentOption;
+        private string defaultOption;
+        private string description;
+        public event Action<string> onValueChange; 
+        public void Init(TextMeshProUGUI label,TMP_Dropdown dropdown,string defaultDescription, List<string> defaultOptions,string defaultOption) {
+            this.label = label;
+            this.dropdown = dropdown;
+            label.text = description;
+            options = defaultOptions;
+            currentOption = this.defaultOption=defaultOption;
+        }
+
+        public void Setup(DropDownConfig dropDownConfig) {
+            description = dropDownConfig.Description;
+            label.text = description;
+            options = dropDownConfig.Options;
+            currentOption = defaultOption = dropDownConfig.DefaultValue;
+            dropDownConfig.onValueChange += DropDownConfig_OnValueChange;
+            onValueChange += dropDownConfig.SetValue;
+            dropdown.onValueChanged.AddListener(Dropdown_OnValueChanged);
+            UpdateDropDown();
+        }
+
+        private void Dropdown_OnValueChanged(int index) {
+            currentOption = options[index];
+            onValueChange?.Invoke(currentOption);
+            UpdateDropDown();
+        }
+
+        private void DropDownConfig_OnValueChange(string obj) {
+            currentOption = obj;
+            UpdateDropDown();
+        }
+
+        private void UpdateDropDown() {
+            dropdown.ClearOptions();
+            dropdown.AddOptions(options);
+            dropdown.SetValueWithoutNotify(options.IndexOf(currentOption));
+        }
+    }
+}
