@@ -16,13 +16,15 @@ namespace ModSetting {
             Debug.Log("ModSetting:启用");
             MainMenu.OnMainMenuAwake += Init;
             if(!isInit)Init();
+            Saver.Load();
         }
         private void OnDisable() {
             Debug.Log("ModSetting:禁用");
             MainMenu.OnMainMenuAwake -= Init;
             isInit = false;
             actionQueue.Clear();
-            ConfigManager.Save();
+            Saver.Save();
+            Saver.Clear();
             ConfigManager.Clear();
         }
         private void Update() {

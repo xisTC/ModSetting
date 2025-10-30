@@ -51,80 +51,12 @@ namespace ModSetting.Config {
             return false;
         }
 
-        public List<DropDownConfigData> GetDropDownConfigDatas() {
-            List<DropDownConfigData> dropDownConfigDatas = new List<DropDownConfigData>();
-            List<DropDownConfig> dropDownConfigs = Filter<DropDownConfigData,DropDownConfig>();
-            foreach (DropDownConfig dropDownConfig in dropDownConfigs) {
-                DropDownConfigData dropDownConfigData = new DropDownConfigData(
-                    dropDownConfig.Key,
-                    dropDownConfig.Description,
-                    dropDownConfig.Value,
-                    dropDownConfig.Options);
-                dropDownConfigDatas.Add(dropDownConfigData);
-            }
-            return dropDownConfigDatas;
-        }
-
-        public List<SliderConfigData> GetSliderConfigDatas() {
-            List<SliderConfigData> sliderConfigDatas = new List<SliderConfigData>();
-            List<SliderConfig> sliderConfigs = Filter<SliderConfigData,SliderConfig>();
-            foreach (SliderConfig sliderConfig in sliderConfigs) {
-                SliderConfigData sliderConfigData = new SliderConfigData(
-                    sliderConfig.Key,
-                    sliderConfig.Description,
-                    sliderConfig.Value,
-                    sliderConfig.SliderRange);
-                sliderConfigDatas.Add(sliderConfigData);
-            }
-            return sliderConfigDatas;
-        }
-
-        public List<ToggleConfigData> GetToggleConfigDatas() {
-            List<ToggleConfigData> toggleConfigDatas = new List<ToggleConfigData>();
-            List<ToggleConfig> toggleConfigs = Filter<ToggleConfigData,ToggleConfig>();
-            foreach (ToggleConfig toggleConfig in toggleConfigs) {
-                ToggleConfigData toggleConfigData = new ToggleConfigData(
-                    toggleConfig.Key,
-                    toggleConfig.Description,
-                    toggleConfig.Enable);
-                toggleConfigDatas.Add(toggleConfigData);
-            }
-            return toggleConfigDatas;
-        }
-
-        public List<KeyBindingConfigData> GetKeyBindingConfigDatas() {
-            List<KeyBindingConfigData> keyBindingConfigDatas = new List<KeyBindingConfigData>();
-            List<KeyBindingConfig> keyBindingConfigs = Filter<KeyBindingConfigData,KeyBindingConfig>();
-            foreach (KeyBindingConfig keyBindingConfig in keyBindingConfigs) {
-                KeyBindingConfigData keyBindingConfigData = new KeyBindingConfigData(
-                    keyBindingConfig.Key,
-                    keyBindingConfig.Description,
-                    keyBindingConfig.KeyCode);
-                keyBindingConfigDatas.Add(keyBindingConfigData);
-            }
-            return keyBindingConfigDatas;
-        }
-
-        public List<InputConfigData> GetInputConfigDatas() {
-            List<InputConfigData> inputConfigDatas = new List<InputConfigData>();
-            List<InputConfig> inputConfigs = Filter<InputConfigData,InputConfig>();
-            foreach (InputConfig inputConfig in inputConfigs) {
-                InputConfigData inputConfigData = new InputConfigData(
-                    inputConfig.Key,
-                    inputConfig.Description,
-                    inputConfig.Value);
-                inputConfigDatas.Add(inputConfigData);
-            }
-            return inputConfigDatas;
-        }
-        private List<K> Filter<T,K>() {
-            List<K> list = new List<K>();
+        public List<IConfigData> GetConfigDatas() {
+            List<IConfigData> configDatas = new List<IConfigData>();
             foreach (IConfig config in allConfigs.Values) {
-                if (config.ConfigDataType!=typeof(T)||
-                    !(config is K k)) continue;
-                list.Add(k);
+                configDatas.Add(config.GetConfigData());
             }
-            return list;
+            return configDatas;
         }
     }
 }

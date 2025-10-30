@@ -18,7 +18,6 @@ namespace ModSetting.Config {
             Options = options;
             Value = value;
             ValueType = typeof(string);
-            ConfigDataType = typeof(DropDownConfigData);
         }
 
         public object GetValue() => Value;
@@ -34,6 +33,10 @@ namespace ModSetting.Config {
             }
             Value = (string)value;
             OnValueChange?.Invoke(Value);
+        }
+
+        public IConfigData GetConfigData() {
+            return new DropDownConfigData(Key, Description, Value, Options);
         }
     }
 }

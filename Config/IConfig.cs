@@ -7,8 +7,8 @@ namespace ModSetting.Config {
         string Key { get; }
         string Description { get; }
         Type ValueType { get; }
-        Type ConfigDataType { get; }
         object GetValue();
         void SetValue(object value);
+        IConfigData GetConfigData();
     }
 }

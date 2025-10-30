@@ -8,7 +8,6 @@ namespace ModSetting.Config {
         public string Description { get; }
         public KeyCode KeyCode { get; private set; }
         public Type ValueType { get; }
-        public Type ConfigDataType { get; }
         public event Action<KeyCode> OnValueChange;
 
         public KeyBindingConfig(string key, string description, KeyCode keyCode) {
@@ -16,7 +15,6 @@ namespace ModSetting.Config {
             Description = description;
             KeyCode = keyCode;
             ValueType = typeof(KeyCode);
-            ConfigDataType = typeof(KeyBindingConfigData);
         }
 
         public object GetValue() => KeyCode;
@@ -27,6 +25,11 @@ namespace ModSetting.Config {
             }
             SetValue((KeyCode)keyCode);
         }
+
+        public IConfigData GetConfigData() {
+            return new KeyBindingConfigData(Key, Description, KeyCode);
+        }
+
         public void SetValue(KeyCode keyCode) {
             KeyCode = keyCode;
             OnValueChange?.Invoke(keyCode);

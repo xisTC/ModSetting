@@ -7,7 +7,6 @@ namespace ModSetting.Config {
         public string Key { get; }
         public string Description { get; }
         public Type ValueType { get; }
-        public Type ConfigDataType { get; }
         public float Value { get; private set; }
         public Vector2 SliderRange { get; private set; }
         public event Action<float> OnValueChange;
@@ -17,7 +16,6 @@ namespace ModSetting.Config {
             Value = value;
             SliderRange = sliderRange;
             ValueType = typeof(float);
-            ConfigDataType = typeof(SliderConfigData);
         }
 
         public object GetValue() => Value;
@@ -32,6 +30,11 @@ namespace ModSetting.Config {
             }
             SetValue((float)value);
         }
+
+        public IConfigData GetConfigData() {
+            return new SliderConfigData(Key, Description, Value, SliderRange);
+        }
+
         public void SetValue(float value) {
             Value = value;
             OnValueChange?.Invoke(value);

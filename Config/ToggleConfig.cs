@@ -7,7 +7,6 @@ namespace ModSetting.Config {
         public string Key { get; }
         public string Description { get; }
         public Type ValueType { get; }
-        public Type ConfigDataType { get; }
 
         public bool Enable { get; private set; }
         public event Action<bool> OnValueChange;
@@ -17,7 +16,6 @@ namespace ModSetting.Config {
             Description = description;
             Enable = enable;
             ValueType = typeof(bool);
-            ConfigDataType = typeof(ToggleConfigData);
         }
 
         public object GetValue() => Enable;
@@ -28,6 +26,10 @@ namespace ModSetting.Config {
                 return;
             }
             SetValue((bool)value);
+        }
+
+        public IConfigData GetConfigData() {
+            return new ToggleConfigData(Key, Description, Enable);
         }
 
         public void SetValue(bool value) {

@@ -8,5 +8,11 @@ namespace ModSetting.Config.Data {
         public ConfigData(List<ModConfigData> configDatas) {
             this.configDatas = configDatas;
         }
+
+        public void Init() {
+            foreach (ModConfigData configData in configDatas) {
+                configData.Init();
+            }
+        }
     }
 }

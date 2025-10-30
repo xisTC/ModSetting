@@ -10,8 +10,6 @@ namespace ModSetting.Config {
 
         public Type ValueType { get; }
 
-        public Type ConfigDataType { get; }
-
         public string Value { get; private set; }
         public int CharacterLimit { get;}
         
@@ -23,7 +21,6 @@ namespace ModSetting.Config {
             Value = value;
             CharacterLimit = characterLimit;
             ValueType = typeof(string);
-            ConfigDataType = typeof(InputConfigData);
         }
 
         public object GetValue() => Value;
@@ -35,6 +32,10 @@ namespace ModSetting.Config {
             }
             Value = (string)value;
             OnValueChange?.Invoke(Value);
+        }
+
+        public IConfigData GetConfigData() {
+            return new InputConfigData(Key, Description, Value);
         }
     }
 }
