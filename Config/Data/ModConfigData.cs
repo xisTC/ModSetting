@@ -1,23 +1,24 @@
 using System;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.Serialization;
 
 namespace ModSetting.Config.Data {
     [Serializable]
     public struct ModConfigData {
         public string displayModName;
-        public ulong modId;
+        public ulong publishedFileId;
         public List<DropDownConfigData> dropDownConfigDatas;
         public List<SliderConfigData> sliderConfigDatas;
         public List<ToggleConfigData> toggleConfigDatas;
         public List<KeyBindingConfigData> keyBindingConfigDatas;
         public List<InputConfigData> inputConfigDatas;
 
-        public ModConfigData(string displayModName, ulong modId, List<DropDownConfigData> dropDownConfigDatas, 
+        public ModConfigData(string displayModName, ulong publishedFileId, List<DropDownConfigData> dropDownConfigDatas, 
             List<SliderConfigData> sliderConfigDatas, List<ToggleConfigData> toggleConfigDatas,
             List<KeyBindingConfigData> keyBindingConfigDatas,List<InputConfigData> inputConfigDatas) {
             this.displayModName = displayModName;
-            this.modId = modId;
+            this.publishedFileId = publishedFileId;
             this.dropDownConfigDatas = dropDownConfigDatas;
             this.sliderConfigDatas = sliderConfigDatas;
             this.toggleConfigDatas = toggleConfigDatas;
@@ -30,13 +31,13 @@ namespace ModSetting.Config.Data {
     public struct DropDownConfigData {
         public string Key { get; private set; }
         public string Description { get; private set; }
-        public string DefaultValue { get; private set; }
+        public string Value { get; private set; }
         public List<string> Options { get; private set; }
 
-        public DropDownConfigData(string key, string description, string defaultValue, List<string> options) {
+        public DropDownConfigData(string key, string description, string value, List<string> options) {
             Key = key;
             Description = description;
-            DefaultValue = defaultValue;
+            Value = value;
             Options = options;
         }
     }
@@ -44,14 +45,14 @@ namespace ModSetting.Config.Data {
     public struct SliderConfigData {
         public string Key { get; private set; }
         public string Description { get; private set; }
-        public float DefaultValue { get; private set; }
+        public float Value { get; private set; }
         public float MinValue { get; private set; }
         public float MaxValue { get; private set; }
 
-        public SliderConfigData(string key, string description, float defaultValue, Vector2 sliderRange) {
+        public SliderConfigData(string key, string description, float value, Vector2 sliderRange) {
             Key = key;
             Description = description;
-            DefaultValue = defaultValue;
+            Value = value;
             MinValue = sliderRange.x;
             MaxValue = sliderRange.y;
         }
@@ -84,12 +85,12 @@ namespace ModSetting.Config.Data {
     public struct InputConfigData {
         public string Key { get; private set; }
         public string Description { get; private set; }
-        public string DefaultValue { get; private set; }
+        public string Value { get; private set; }
 
-        public InputConfigData(string key, string description, string defaultValue) {
+        public InputConfigData(string key, string description, string value) {
             Key = key;
             Description = description;
-            DefaultValue = defaultValue;
+            Value = value;
         }
     }
 }

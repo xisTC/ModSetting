@@ -632,6 +632,7 @@
         <Compile Include="ModBehaviour.cs" />
         <Compile Include="Properties\AssemblyInfo.cs"/>
         <Compile Include="ReflectionExtension.cs" />
+        <Compile Include="Saver.cs" />
         <Compile Include="UI\DropDownUI.cs" />
         <Compile Include="UI\GlobalPanelUI.cs" />
         <Compile Include="UI\InputUI.cs" />

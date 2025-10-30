@@ -22,7 +22,7 @@ namespace ModSetting.UI {
         private TitleUI titlePrefab;
         private InputUI inputPrefab;
         protected float titleHeight;
-        private readonly Dictionary<ulong, TitleUI> titleUiDic = new Dictionary<ulong, TitleUI>();
+        private readonly Dictionary<string, TitleUI> titleUiDic = new Dictionary<string, TitleUI>();
         private KeyBindingManager keyBindingManager;
         public bool IsInit { get; protected set; }
         public abstract void Init();
@@ -250,7 +250,7 @@ namespace ModSetting.UI {
             return true;
         }
         public bool RemoveUI(ModInfo modInfo, string key) {
-            if (titleUiDic.TryGetValue(modInfo.publishedFileId, out var titleUI)) {
+            if (titleUiDic.TryGetValue(modInfo.GetModId(), out var titleUI)) {
                 keyBindingManager.RemoveModKeyBinding(modInfo, key);
                 return titleUI.RemoveUI(key);
             }
@@ -258,7 +258,7 @@ namespace ModSetting.UI {
         }
 
         public bool RemoveTitle(ModInfo info) {
-            if (titleUiDic.Remove(info.publishedFileId, out var titleUI)) {
+            if (titleUiDic.Remove(info.GetModId(), out var titleUI)) {
                 keyBindingManager.RemoveModKeyBinding(info);
                 titleUI.Clear();
                 DestroySafely(titleUI);
@@ -277,11 +277,11 @@ namespace ModSetting.UI {
         }
 
         private TitleUI AddTitle(ModInfo modInfo) {
-            if (titleUiDic.TryGetValue(modInfo.publishedFileId, out var title)) return title;
+            if (titleUiDic.TryGetValue(modInfo.GetModId(), out var title)) return title;
             if (modContent == null || titlePrefab == null) return null;
             TitleUI titleUI = Instantiate(titlePrefab, modContent.transform);
             titleUI.Setup(modInfo.preview, modInfo.displayName, titleHeight);
-            titleUiDic.Add(modInfo.publishedFileId, titleUI);
+            titleUiDic.Add(modInfo.GetModId(), titleUI);
             return titleUI;
         }
 

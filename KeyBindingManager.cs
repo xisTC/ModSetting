@@ -1,13 +1,14 @@
 using System.Collections.Generic;
 using System.Linq;
 using Duckov.Modding;
+using ModSetting.Config;
 using ModSetting.UI;
 using UnityEngine;
 
 namespace ModSetting {
     public class KeyBindingManager {
         private readonly Dictionary<KeyCode,List<KeyBindingUI>> allKeyCodes = new Dictionary<KeyCode, List<KeyBindingUI>>();
-        private readonly Dictionary<ulong, ModKeyBinding> modKeyBindingDic = new Dictionary<ulong, ModKeyBinding>();
+        private readonly Dictionary<string, ModKeyBinding> modKeyBindingDic = new Dictionary<string, ModKeyBinding>();
         public bool IsRebinding { get; private set; }
 
         public void StartBinding() {
@@ -42,28 +43,28 @@ namespace ModSetting {
         }
 
         public void AddModKeyBinding(ModInfo modInfo, string key, KeyBindingUI keyBindingUI) {
-            if (modKeyBindingDic.TryGetValue(modInfo.publishedFileId,out var modKeyBinding)) {
+            if (modKeyBindingDic.TryGetValue(modInfo.GetModId(),out var modKeyBinding)) {
                 modKeyBinding.AddKeyBindingUI(key, keyBindingUI);
             } else {
                 ModKeyBinding keyBinding = new ModKeyBinding(modInfo);
                 keyBinding.AddKeyBindingUI(key, keyBindingUI);
-                modKeyBindingDic.Add(modInfo.publishedFileId,keyBinding);
+                modKeyBindingDic.Add(modInfo.GetModId(),keyBinding);
             }
         }
 
         public void RemoveModKeyBinding(ModInfo modInfo, string key) {
-            if (!modKeyBindingDic.TryGetValue(modInfo.publishedFileId, out var modKeyBinding)) return;
+            if (!modKeyBindingDic.TryGetValue(modInfo.GetModId(), out var modKeyBinding)) return;
             KeyBindingUI keyBindingUI=modKeyBinding.GetKeyBindingUI(key);
             if(keyBindingUI==null)return;
             RemoveKeyCode(keyBindingUI.CurrentKey,keyBindingUI);
             modKeyBinding.RemoveKeyBindingUI(key);
             if (!modKeyBinding.HasKeyBindingUI()) {
-                modKeyBindingDic.Remove(modInfo.publishedFileId);
+                modKeyBindingDic.Remove(modInfo.GetModId());
                 Debug.Log("按键绑定已经没了，移除绑定");
             }
         }
         public void RemoveModKeyBinding(ModInfo modInfo) {
-            if (!modKeyBindingDic.Remove(modInfo.publishedFileId, out var modKeyBinding)) {
+            if (!modKeyBindingDic.Remove(modInfo.GetModId(), out var modKeyBinding)) {
                 Debug.LogError("同步错误/没有绑定ui");
                 return;
             }

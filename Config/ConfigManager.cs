@@ -5,21 +5,22 @@ using Duckov.Modding;
 using ModSetting.Config.Data;
 using Newtonsoft.Json;
 using UnityEngine;
-
+//todo ulong需要更改，因为没有上架的id为0
+// todo 增加保存系统，优先从UI获取数据，如果没有，然后从保存系统中获取
 namespace ModSetting.Config {
     public static class ConfigManager {
-        private static readonly Dictionary<ulong, ModConfig> configs = new Dictionary<ulong, ModConfig>();
+        private static readonly Dictionary<string, ModConfig> configs = new Dictionary<string, ModConfig>();
         public static void AddConfig(ModInfo modInfo,IConfig config) {
-            if (configs.TryGetValue(modInfo.publishedFileId,out var modConfig)) {
+            if (configs.TryGetValue(modInfo.GetModId(),out var modConfig)) {
                 modConfig.AddConfig(config);
             } else {
                 modConfig = new ModConfig(modInfo);
                 modConfig.AddConfig(config);
-                configs.Add(modInfo.publishedFileId,modConfig);
+                configs.Add(modInfo.GetModId(),modConfig);
             }
         }
         public static T GetValue<T>(ModInfo info,string key) {
-            if (configs.TryGetValue(info.publishedFileId,out var modConfig)) {
+            if (configs.TryGetValue(info.GetModId(),out var modConfig)) {
                 return modConfig.GetValue<T>(key);
             } else {
                 Debug.LogError($"找不到此{info.displayName}的值,key:"+key);
@@ -28,7 +29,7 @@ namespace ModSetting.Config {
         }
 
         public static bool SetValue<T>(ModInfo info, string key,T value) {
-            if (configs.TryGetValue(info.publishedFileId,out var modConfig)) {
+            if (configs.TryGetValue(info.GetModId(),out var modConfig)) {
                 return modConfig.SetValue(key,value);
             }
             Debug.LogError($"找不到此{info.displayName}的配置,无法设置值");
@@ -36,14 +37,14 @@ namespace ModSetting.Config {
         }
 
         public static bool RemoveUI(ModInfo info, string key) {
-            if (configs.TryGetValue(info.publishedFileId,out var modConfig)) {
+            if (configs.TryGetValue(info.GetModId(),out var modConfig)) {
                 return modConfig.RemoveUI(key);
             }
             Debug.LogError($"找不到此{info.displayName}的UI,key:"+key);
             return false;
         }
         public static bool RemoveMod(ModInfo info) {
-            if (configs.Remove(info.publishedFileId)) {
+            if (configs.Remove(info.GetModId())) {
                 return true;
             }
             Debug.LogError($"找不到此{info.displayName}的配置");
@@ -99,6 +100,12 @@ namespace ModSetting.Config {
             }
 
             return Path.Combine(directory, CONFIG_FILE_NAME);
+        }
+    }
+
+    public static class ModInfoExtension {
+        public static string GetModId(this ModInfo modInfo) {
+            return $"displayName:{modInfo.displayName};name:{modInfo.name};publishedFileId:{modInfo.publishedFileId}";
         }
     }
 }
