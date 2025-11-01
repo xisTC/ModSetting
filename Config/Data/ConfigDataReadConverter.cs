@@ -15,7 +15,7 @@ public class ConfigDataReadConverter : JsonConverter<IConfigData>
 
     public override void WriteJson(JsonWriter writer, IConfigData value, JsonSerializer serializer)
     {
-        throw new NotImplementedException();
+        
     }
 
     public override IConfigData ReadJson(JsonReader reader, Type objectType, IConfigData existingValue, bool hasExistingValue, JsonSerializer serializer)
@@ -46,9 +46,7 @@ public class ConfigDataReadConverter : JsonConverter<IConfigData>
             {
                 UnityEngine.Debug.Log("转化UIType失败");
                 return null;
-            } else {
-                Debug.Log("当前UIType为:"+uiType);
-            }
+            } 
             
             // 根据确定的 UIType 创建对象
             return CreateConfigData(uiType.Value, jsonObject, cleanSerializer);

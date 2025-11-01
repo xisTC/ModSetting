@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using Newtonsoft.Json;
+using UnityEngine;
 
 namespace ModSetting.Config.Data {
     [Serializable]
@@ -11,9 +12,11 @@ namespace ModSetting.Config.Data {
         public ModConfigData(string modId,List<IConfigData> allConfigDatas) {
             this.modId = modId;
             this.allConfigDatas = allConfigDatas;
+            Init();
         }
 
-        public void Init() {
+        private void Init() {
+            configs.Clear();
             foreach (IConfigData configData in allConfigDatas) {
                 configs.Add(configData.Key,configData);
             }
@@ -24,7 +27,8 @@ namespace ModSetting.Config.Data {
 
         public T GetValue<T>(string key) {
             if (!HasValue(key)) return default;
-            return (T)configs[key].GetValue();
+            object value = configs[key].GetValue();
+            return (T)value;
         }
     }
 }

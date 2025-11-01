@@ -617,7 +617,7 @@
         </Reference>
     </ItemGroup>
     <ItemGroup>
-        <Compile Include="Api\ModSetting.cs" />
+        <Compile Include="Api\ModSettingAPI.cs" />
         <Compile Include="Config\ConfigManager.cs" />
         <Compile Include="Config\Data\ConfigData.cs" />
         <Compile Include="Config\Data\ConfigDataReadConverter.cs" />

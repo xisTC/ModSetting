@@ -267,6 +267,8 @@ namespace ModSetting.UI {
             return false;
         }
 
+        public bool HasTitle(ModInfo info) => titleUiDic.ContainsKey(info.GetModId());
+
         private void AddUnderTheTitle(ModInfo modInfo, string key, GameObject uiGo) {
             TitleUI titleUI = AddOrGetTitle(modInfo);
             titleUI.Add(key, uiGo);

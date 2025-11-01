@@ -4,7 +4,7 @@ using Duckov.Modding;
 using ModSetting.Config.Data;
 using UnityEngine;
 
-//TODO 尝试使用多态Config
+
 namespace ModSetting.Config {
     public class ModConfig {
         public ModInfo ModInfo { get; private set; }
@@ -13,8 +13,8 @@ namespace ModSetting.Config {
             ModInfo = modInfo;
         }
         public void AddConfig(IConfig config) {
-            if (allConfigs.TryGetValue(config.Key,out _)) {
-                Debug.LogError(ModInfo.displayName+":已经有此key，无法添加新config");
+            if (allConfigs.TryGetValue(config.Key,out IConfig oldConfig)) {
+                allConfigs[config.Key] = config;
             } else {
                 allConfigs.Add(config.Key,config);
             }
@@ -43,20 +43,12 @@ namespace ModSetting.Config {
             return false;
         }
 
-        public bool RemoveUI(string key) {
-            if (allConfigs.Remove(key, out _)) {
-                return true;
-            }
-            Debug.LogError("删除UI失败,key:"+key);
-            return false;
-        }
-
-        public List<IConfigData> GetConfigDatas() {
+        public ModConfigData ToModConfigData() {
             List<IConfigData> configDatas = new List<IConfigData>();
             foreach (IConfig config in allConfigs.Values) {
                 configDatas.Add(config.GetConfigData());
             }
-            return configDatas;
+            return new ModConfigData(ModInfo.GetModId(),configDatas);
         }
     }
 }

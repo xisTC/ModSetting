@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
+using Duckov.Modding;
 using ModSetting.Config;
 using ModSetting.Config.Data;
 using Newtonsoft.Json;
@@ -8,7 +10,7 @@ using Newtonsoft.Json.Converters;
 using UnityEngine;
 
 namespace ModSetting {
-    public class Saver {
+    public static class Saver {
          private static readonly JsonSerializer jsonSerializer = new JsonSerializer() {
             Formatting = Formatting.Indented,
             Converters = { new ConfigDataReadConverter() }
@@ -16,7 +18,6 @@ namespace ModSetting {
         private static readonly Dictionary<string, ModConfigData> saveConfigs = new Dictionary<string, ModConfigData>();
 
         private const string CONFIG_FILE_NAME = "config.json";
-
         public static void Load() {
             string configPath = GetConfigPath();
             Debug.Log("加载配置文件:" + configPath);
@@ -29,7 +30,6 @@ namespace ModSetting {
                     Debug.Log("异常:"+e);
                     throw;
                 }
-                data.Init();
                 List<ModConfigData> modConfigDatas = data.configDatas;
                 if (modConfigDatas!=null&& modConfigDatas.Count!=0) {
                     foreach (ModConfigData modConfigData in modConfigDatas) {
@@ -53,13 +53,14 @@ namespace ModSetting {
         private static void CreateConfigFile() {
             string configPath = GetConfigPath();
             Debug.Log("创建配置文件:" + configPath);
-            List<ModConfigData> modConfigDatas = new List<ModConfigData>();
             foreach (ModConfig modConfig in ConfigManager.GetConfigs()) {
-                ModConfigData modConfigData =
-                    new ModConfigData(modConfig.ModInfo.GetModId(), modConfig.GetConfigDatas());
-                modConfigDatas.Add(modConfigData);
+                if (saveConfigs.TryGetValue(modConfig.ModInfo.GetModId(), out _)) {
+                    saveConfigs[modConfig.ModInfo.GetModId()] = modConfig.ToModConfigData();
+                } else {
+                    saveConfigs.Add(modConfig.ModInfo.GetModId(),modConfig.ToModConfigData());
+                }
             }
-            ConfigData configData = new ConfigData(modConfigDatas);
+            ConfigData configData = new ConfigData(saveConfigs.Values.ToList());
             string directory = Path.GetDirectoryName(configPath);
             if (directory == null) {
                 Debug.LogError("directory不能为null");
@@ -89,11 +90,23 @@ namespace ModSetting {
             return saveConfigs.ContainsKey(modId)&& saveConfigs[modId].HasValue(key);
         }
 
+        public static bool HasValue(string modId) => saveConfigs.ContainsKey(modId);
+
         public static T GetValue<T>(string modId,string key) {
             if (HasValue(modId,key)) {
                 return saveConfigs[modId].GetValue<T>(key);
             }
             return default;
+        }
+
+
+        public static void UpdateConfig(ModConfig modConfig) {
+           if(modConfig==null)return;
+           if (saveConfigs.TryGetValue(modConfig.ModInfo.GetModId(), out _)) {
+               saveConfigs[modConfig.ModInfo.GetModId()] = modConfig.ToModConfigData();
+           } else {
+               saveConfigs.Add(modConfig.ModInfo.GetModId(),modConfig.ToModConfigData());
+           }
         }
     }
 }

@@ -11,6 +11,7 @@ namespace ModSetting.UI {
         [SerializeField]private TMP_InputField valueField;
         private float currentValue;
         private string description;
+        private int decimalPlaces=1;
         public event Action<float> onValueChange; 
         private void Awake() {
             if(slider!=null) slider.onValueChanged.AddListener(Slider_OnValueChanged);
@@ -18,7 +19,7 @@ namespace ModSetting.UI {
         }
 
         public void Init(TextMeshProUGUI label,Slider slider,TMP_InputField valueField,
-            string defaultDescription,float defaultValue,float defaultMinValue,float defaultMaxValue ) {
+            string defaultDescription,float defaultValue,float defaultMinValue,float defaultMaxValue,int decimalPlaces=1) {
             this.label = label;
             this.slider = slider;
             this.valueField = valueField;
@@ -26,6 +27,7 @@ namespace ModSetting.UI {
             currentValue = defaultValue;
             slider.minValue = defaultMinValue;
             slider.maxValue = defaultMaxValue;
+            this.decimalPlaces = decimalPlaces;
         }
 
         public void Setup(SliderConfig sliderConfig) {
@@ -34,32 +36,39 @@ namespace ModSetting.UI {
             currentValue = sliderConfig.Value;
             slider.minValue = sliderConfig.SliderRange.x;
             slider.maxValue = sliderConfig.SliderRange.y;
+            decimalPlaces = sliderConfig.DecimalPlaces;
+            valueField.characterLimit = sliderConfig.CharacterLimit;
             sliderConfig.OnValueChange +=SliderConfig_OnValueChange ;
             onValueChange += sliderConfig.SetValue;
             UpdateValue();
         }
 
         private void Slider_OnValueChanged(float value) {
-            currentValue = value;
-            onValueChange?.Invoke(value);
+            currentValue = RoundToDecimalPlaces(value);
+            onValueChange?.Invoke(currentValue);
             UpdateValue();
         }
 
         private void SliderConfig_OnValueChange(float obj) {
-            currentValue = obj;
+            currentValue = RoundToDecimalPlaces(obj);
             UpdateValue();
         }
 
         private void InputField_OnEndEdit(string value) {
             if (float.TryParse(value, out float result)) {
-                currentValue= Mathf.Clamp(result, this.slider.minValue, this.slider.maxValue);
+                currentValue= Mathf.Clamp(result, slider.minValue, slider.maxValue);
+                currentValue = RoundToDecimalPlaces(currentValue);
                 onValueChange?.Invoke(currentValue);
             }
             UpdateValue();
         }
         private void UpdateValue() {
             slider.SetValueWithoutNotify(currentValue);
-            valueField.SetTextWithoutNotify(currentValue.ToString("0.0"));
+            valueField.SetTextWithoutNotify(currentValue.ToString());
+        }
+        private float RoundToDecimalPlaces(float value) {
+            float multiplier = Mathf.Pow(10, decimalPlaces);
+            return Mathf.Round(value * multiplier) / multiplier;
         }
     }
 }

@@ -9,12 +9,16 @@ namespace ModSetting.Config {
         public Type ValueType { get; }
         public float Value { get; private set; }
         public Vector2 SliderRange { get; private set; }
+        public int DecimalPlaces { get; }
+        public int CharacterLimit { get;}
         public event Action<float> OnValueChange;
-        public SliderConfig(string key, string description, float value, Vector2 sliderRange) {
+        public SliderConfig(string key, string description, float value, Vector2 sliderRange,int decimalPlaces,int characterLimit) {
             Key = key;
             Description = description;
             Value = value;
             SliderRange = sliderRange;
+            DecimalPlaces = decimalPlaces;
+            CharacterLimit = characterLimit;
             ValueType = typeof(float);
         }
 
@@ -36,8 +40,12 @@ namespace ModSetting.Config {
         }
 
         public void SetValue(float value) {
-            Value = value;
-            OnValueChange?.Invoke(value);
+            Value = RoundToDecimalPlaces(value);
+            OnValueChange?.Invoke(Value);
+        }
+        private float RoundToDecimalPlaces(float value) {
+            float multiplier = Mathf.Pow(10, DecimalPlaces);
+            return Mathf.Round(value * multiplier) / multiplier;
         }
     }
 }
