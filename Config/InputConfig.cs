@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using ModSetting.Config.Data;
 using UnityEngine;
 
@@ -7,8 +8,6 @@ namespace ModSetting.Config {
         public string Key { get; }
 
         public string Description { get; }
-
-        public Type ValueType { get; }
 
         public string Value { get; private set; }
         public int CharacterLimit { get;}
@@ -20,19 +19,24 @@ namespace ModSetting.Config {
             Description = description;
             Value = value;
             CharacterLimit = characterLimit;
-            ValueType = typeof(string);
         }
 
-        public object GetValue() => Value;
+        public T GetValue<T>() => (T)(object)Value;
 
         public void SetValue(object value) {
-            if (value.GetType() != ValueType) {
-                Debug.LogError($"类型不匹配:{ValueType}和{value.GetType()},无法赋值");
+            if (!IsTypeMatch(value.GetType())) {
+                Debug.LogError($"类型不匹配:{value.GetType()},无法赋值给:{GetTypesString()}");
                 return;
             }
             Value = (string)value;
             OnValueChange?.Invoke(Value);
         }
+
+        public bool IsTypeMatch(Type type) => GetValidTypes().Contains(type);
+
+        public List<Type> GetValidTypes() => new List<Type>() { typeof(string) };
+
+        public string GetTypesString() => string.Join(",", GetValidTypes());
 
         public IConfigData GetConfigData() {
             return new InputConfigData(Key, Description, Value);

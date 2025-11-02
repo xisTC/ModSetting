@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using ModSetting.Config.Data;
 using UnityEngine;
 
@@ -7,24 +8,28 @@ namespace ModSetting.Config {
         public string Key { get; }
         public string Description { get; }
         public KeyCode KeyCode { get; private set; }
-        public Type ValueType { get; }
         public event Action<KeyCode> OnValueChange;
 
         public KeyBindingConfig(string key, string description, KeyCode keyCode) {
             Key = key;
             Description = description;
             KeyCode = keyCode;
-            ValueType = typeof(KeyCode);
         }
 
-        public object GetValue() => KeyCode;
+        public T GetValue<T>() => (T)(object)KeyCode;
         public void SetValue(object keyCode) {
-            if (keyCode.GetType() != ValueType) {
-                Debug.LogError($"类型不匹配:{ValueType}和{keyCode.GetType()},无法赋值");
+            if (!IsTypeMatch(keyCode.GetType())) {
+                Debug.LogError($"类型不匹配:{keyCode.GetType()},无法赋值给:{GetTypesString()}");
                 return;
             }
             SetValue((KeyCode)keyCode);
         }
+
+        public bool IsTypeMatch(Type type) => GetValidTypes().Contains(type);
+
+        public List<Type> GetValidTypes() => new List<Type>() { typeof(KeyCode) };
+
+        public string GetTypesString() => string.Join(",", GetValidTypes());
 
         public IConfigData GetConfigData() {
             return new KeyBindingConfigData(Key, Description, KeyCode);

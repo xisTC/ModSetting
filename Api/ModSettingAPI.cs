@@ -45,7 +45,7 @@ public static class ModSettingAPI {
         ModSettingAPI.modInfo = modInfo;
         modBehaviour = FindTypeInAssemblies(TYPE_NAME);
         if (modBehaviour == null) return false;
-        if (!VersionAvailable()) return false;
+        VersionAvailable();
         foreach (string methodName in methodNames) {
             MethodInfo[] methodInfos = modBehaviour.GetMethods(BindingFlags.Public | BindingFlags.Static)
                 .Where(m => m.Name == methodName)
@@ -198,10 +198,8 @@ public static class ModSettingAPI {
                 Debug.LogWarning($"警告:ModSetting的版本:{modSettingVersion} (API的版本:{Version})");
                 return false;
             }
-
             return true;
         }
-
         return false;
     }
 

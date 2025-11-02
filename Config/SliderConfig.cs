@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using ModSetting.Config.Data;
 using UnityEngine;
 
@@ -6,7 +7,6 @@ namespace ModSetting.Config {
     public class SliderConfig: IConfig{
         public string Key { get; }
         public string Description { get; }
-        public Type ValueType { get; }
         public float Value { get; private set; }
         public Vector2 SliderRange { get; private set; }
         public int DecimalPlaces { get; }
@@ -19,14 +19,21 @@ namespace ModSetting.Config {
             SliderRange = sliderRange;
             DecimalPlaces = decimalPlaces;
             CharacterLimit = characterLimit;
-            ValueType = typeof(float);
         }
 
-        public object GetValue() => Value;
+        public T GetValue<T>() {
+            if (typeof(T) == typeof(float)) {
+                return (T)(object)Value;
+            }
+            if (typeof(T)==typeof(int)) {
+                return (T)Convert.ChangeType(Value, typeof(T));
+            }
+            return default;
+        }
 
         public void SetValue(object value) {
-            if (value.GetType() != ValueType) {
-                Debug.LogError($"类型不匹配:{ValueType}和{value.GetType()},无法赋值");
+            if (!IsTypeMatch(value.GetType())) {
+                Debug.LogError($"类型不匹配:{value.GetType()},无法赋值给:{GetTypesString()}");
                 return;
             }
             if ((float)value < SliderRange.x || (float)value > SliderRange.y) {
@@ -34,6 +41,12 @@ namespace ModSetting.Config {
             }
             SetValue((float)value);
         }
+
+        public bool IsTypeMatch(Type type) => GetValidTypes().Contains(type);
+
+        public List<Type> GetValidTypes() => new List<Type>() { typeof(float), typeof(int) };
+
+        public string GetTypesString() => string.Join(",", GetValidTypes());
 
         public IConfigData GetConfigData() {
             return new SliderConfigData(Key, Description, Value, SliderRange);

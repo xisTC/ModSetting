@@ -22,8 +22,10 @@ namespace ModSetting.Config {
 
         public T GetValue<T>(string key) {
             if (allConfigs.TryGetValue(key,out var config)) {
-                if(typeof(T)==config.ValueType) return (T)config.GetValue();
-                Debug.LogError($"key和类型不匹配,key:{key};type:{typeof(T)}。类型应该为:{config.ValueType}");
+                if (config.IsTypeMatch(typeof(T))) {
+                    return config.GetValue<T>();
+                }
+                Debug.LogError($"key和类型不匹配,key:{key};type:{typeof(T)}。类型应该为:{config.GetTypesString()}");
             } else {
                 Debug.LogError("找不到对应key的值,key:"+key);
             }
@@ -32,11 +34,11 @@ namespace ModSetting.Config {
 
         public bool SetValue<T>(string key,T value) {
             if (allConfigs.TryGetValue(key, out var config)) {
-                if (typeof(T) == config.ValueType) {
+                if (config.IsTypeMatch(typeof(T))) {
                     config.SetValue(value);
                     return true;
                 }
-                Debug.LogError($"key和类型不匹配,key:{key};type:{typeof(T)}。类型应该为:{config.ValueType}");
+                Debug.LogError($"key和类型不匹配,key:{key};type:{typeof(T)}。类型应该为:{config.GetTypesString()}");
                 return false;
             }
             Debug.LogError("找不到对应key的值,key:"+key);
