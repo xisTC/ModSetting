@@ -7,7 +7,15 @@ namespace ModSetting.Config.Data {
         public string Key { get; private set; }
         public string Description { get; private set; }
         public UIType UIType => UIType.滑块; 
-        public object GetValue() => Value;
+        public T GetValue<T>() {
+            if (typeof(T) == typeof(float)) {
+                return (T)(object)Value;
+            }
+            if (typeof(T)==typeof(int)) {
+                return (T)Convert.ChangeType(Value, typeof(T));
+            }
+            return default;
+        }
 
         public float Value { get; private set; }
         public float MinValue { get; private set; }

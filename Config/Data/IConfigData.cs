@@ -3,7 +3,7 @@ namespace ModSetting.Config.Data {
         string Key { get;}
         string Description { get;}
         UIType UIType { get; }
-        object GetValue();
+        T GetValue<T>();
     }
 
     public enum UIType {

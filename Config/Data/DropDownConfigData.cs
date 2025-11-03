@@ -13,7 +13,7 @@ namespace ModSetting.Config.Data {
 
         public List<string> Options { get; private set; }
 
-        public object GetValue() => Value;
+        public T GetValue<T>() => (T)(object)Value;
 
         public DropDownConfigData(string key, string description, string value, List<string> options) {
             Key = key;

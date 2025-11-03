@@ -6,7 +6,7 @@ namespace ModSetting.Config.Data {
         public string Key { get; private set; }
         public string Description { get; private set; }
         public UIType UIType => UIType.按钮;
-        public object GetValue() => Enable;
+        public T GetValue<T>() => (T)(object)Enable;
 
         public bool Enable { get; private set; }
 

@@ -27,8 +27,8 @@ namespace ModSetting.Config.Data {
 
         public T GetValue<T>(string key) {
             if (!HasValue(key)) return default;
-            object value = configs[key].GetValue();
-            return (T)value;
+            T value = configs[key].GetValue<T>();
+            return value;
         }
     }
 }

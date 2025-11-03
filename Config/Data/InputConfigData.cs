@@ -6,7 +6,7 @@ namespace ModSetting.Config.Data {
         public string Key { get; private set; }
         public string Description { get; private set; }
         public UIType UIType => UIType.输入框;
-        public object GetValue() => Value;
+        public T GetValue<T>() => (T)(object)Value;
 
         public string Value { get; private set; }
 
