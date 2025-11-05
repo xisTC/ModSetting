@@ -46,8 +46,6 @@ namespace ModSetting.UI {
             if (!Input.anyKeyDown) return;
             foreach (KeyCode keyCode in Enum.GetValues(typeof(KeyCode))) {
                 if (Input.GetKeyDown(keyCode)) {
-                    // 跳过鼠标按键（如果需要）
-                    if (IsMouseButton(keyCode)) continue;
                     // 跳过不允许的键
                     if (!IsKeyAllowed(keyCode)) continue;
                     // 完成重绑定
@@ -98,9 +96,6 @@ namespace ModSetting.UI {
         private void OnClickButton() {
             StartRebinding();
         }
-        private bool IsMouseButton(KeyCode key) {
-            return key >= KeyCode.Mouse0 && key <= KeyCode.Mouse6;
-        }
         private bool IsKeyAllowed(KeyCode key) {
             // 禁止绑定的键
             KeyCode[] forbiddenKeys = {
@@ -125,6 +120,9 @@ namespace ModSetting.UI {
                 case KeyCode.DownArrow: return "↓";
                 case KeyCode.LeftArrow: return "←";
                 case KeyCode.RightArrow: return "→";
+                case KeyCode.Mouse0: return "鼠标左键";
+                case KeyCode.Mouse1: return "鼠标右键";
+                case KeyCode.Mouse2: return "鼠标中键";
                 default: return key.ToString();
             }
         }
