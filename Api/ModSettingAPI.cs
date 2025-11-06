@@ -17,7 +17,8 @@ public static class ModSettingAPI {
     private const string ADD_INPUT = "AddInput";
     private const string HAS_CONFIG = "HasConfig";
     private const string GET_SAVED_VALUE = "GetSavedValue";
-    private static float Version = 0.2f;
+    private const string ADD_KEYBINDING_WITH_DEFAULT = "AddKeybindingWithDefault";
+    private static float Version = 0.3f;
     public const string MOD_NAME = "ModSetting";
     private const string TYPE_NAME = "ModSetting.ModBehaviour";
     private static Type modBehaviour;
@@ -37,7 +38,10 @@ public static class ModSettingAPI {
         SET_VALUE,
         REMOVE_UI,
         REMOVE_MOD,
-        ADD_INPUT
+        ADD_INPUT,
+        HAS_CONFIG,
+        GET_SAVED_VALUE,
+        ADD_KEYBINDING_WITH_DEFAULT
     };
 
     public static bool Init(ModInfo modInfo) {
@@ -120,6 +124,15 @@ public static class ModSettingAPI {
             typeof(Action<ModInfo,string,string,KeyCode,Action<KeyCode>>));
     }
 
+    public static bool AddKeybindingWithDefault(string key, string description,
+        KeyCode keyCode, KeyCode defaultKeyCode, Action<KeyCode> onValueChange = null) {
+        if (!Available(key)) return false;
+        return InvokeMethod(ADD_KEYBINDING_WITH_DEFAULT,
+            ADD_KEYBINDING_WITH_DEFAULT,
+            new object[] { modInfo, key, description, keyCode,defaultKeyCode,onValueChange },
+            typeof(Action<ModInfo,string,string,KeyCode,KeyCode,Action<KeyCode>>));
+    }
+
     public static bool AddInput(string key, string description,
         string defaultValue, int characterLimit = 40, Action<string> onValueChange = null) {
         if (!Available(key)) return false;
@@ -195,7 +208,7 @@ public static class ModSettingAPI {
         if (versionField != null && versionField.FieldType == typeof(float)) {
             float modSettingVersion = (float)versionField.GetValue(null);
             if (!Mathf.Approximately(modSettingVersion, Version)) {
-                Debug.LogWarning($"警告:ModSetting的版本:{modSettingVersion} (API的版本:{Version})");
+                Debug.LogWarning($"警告:ModSetting的版本:{modSettingVersion} (API的版本:{Version}),新功能将无法使用");
                 return false;
             }
             return true;

@@ -8,12 +8,14 @@ namespace ModSetting.Config {
         public string Key { get; }
         public string Description { get; }
         public KeyCode KeyCode { get; private set; }
+        public KeyCode DefaultKeyCode { get; private set; }
         public event Action<KeyCode> OnValueChange;
 
-        public KeyBindingConfig(string key, string description, KeyCode keyCode) {
+        public KeyBindingConfig(string key, string description,KeyCode keyCode,KeyCode defaultKeyCode) {
             Key = key;
             Description = description;
             KeyCode = keyCode;
+            DefaultKeyCode = defaultKeyCode;
         }
 
         public T GetValue<T>() => (T)(object)KeyCode;

@@ -8,6 +8,7 @@ namespace ModSetting.UI {
     public class KeyBindingUI : MonoBehaviour {
         [SerializeField]private TextMeshProUGUI label;
         [SerializeField]private Button rebindButton;
+        [SerializeField]private Button clearButton;
         [SerializeField]private TextMeshProUGUI text;
         private bool isWaitingForInput = false;
         private KeyCode defaultKeyCode;
@@ -16,7 +17,8 @@ namespace ModSetting.UI {
         public event Action<KeyCode> onValueChange;
         public KeyCode CurrentKey => newKeyCode;
         private void Awake() {
-            if (rebindButton != null) rebindButton.onClick.AddListener(OnClickButton);
+            if (rebindButton != null) rebindButton.onClick.AddListener(OnClickBindingButton);
+            if (clearButton != null) clearButton.onClick.AddListener(OnClickClearButton);
         }
 
         private void Update() {
@@ -25,23 +27,26 @@ namespace ModSetting.UI {
         }
 
         //管理text,从InputIndicator中获取
-        public void Init(TextMeshProUGUI label, Button rebindButton, TextMeshProUGUI text,string defaultDescription,KeyCode defaultKeyCode) {
+
+        public void Init(TextMeshProUGUI label, Button rebindButton, Button clearButton,TextMeshProUGUI text,string defaultDescription,KeyCode defaultKeyCode) {
             this.label = label;
             this.rebindButton = rebindButton;
             this.text = text;
             label.text = defaultDescription;
             this.defaultKeyCode = defaultKeyCode;
+            this.clearButton = clearButton;
         }
 
         public void Setup(KeyBindingConfig keyBindingConfig,KeyBindingManager keyBindingManager) {
             label.text = keyBindingConfig.Description;
-            defaultKeyCode = keyBindingConfig.KeyCode;
+            defaultKeyCode = keyBindingConfig.DefaultKeyCode;
             this.keyBindingManager = keyBindingManager;
             onValueChange += keyBindingConfig.SetValue;
             keyBindingConfig.OnValueChange +=SetNewKey;
             keyBindingManager.AddKeyCode(newKeyCode,this);
             SetNewKey(keyBindingConfig.KeyCode);
         }
+
         private void HandleKeyInput() {
             if (!Input.anyKeyDown) return;
             foreach (KeyCode keyCode in Enum.GetValues(typeof(KeyCode))) {
@@ -54,6 +59,7 @@ namespace ModSetting.UI {
                 }
             }
         }
+
         private void StartRebinding() {
             if (isWaitingForInput || keyBindingManager.IsRebinding) return;
             rebindButton.interactable = false;
@@ -71,6 +77,7 @@ namespace ModSetting.UI {
             onValueChange?.Invoke(newKey);
             UpdateDisplay();
         }
+
         private void OnDisable() {
             if(isWaitingForInput)CancelRebinding();
         }
@@ -88,12 +95,19 @@ namespace ModSetting.UI {
             newKeyCode = keyCode;
             keyBindingManager.AddKeyCode(newKeyCode,this);
         }
+
         public void UpdateDisplay() {
             text.text = GetKeyCodeDisplayName(newKeyCode);
             rebindButton.image.color = keyBindingManager.GetButtonColor(newKeyCode);
         }
 
-        private void OnClickButton() {
+        private void OnClickClearButton() {
+            SetNewKey(defaultKeyCode);
+            onValueChange?.Invoke(defaultKeyCode);
+            UpdateDisplay();
+        }
+
+        private void OnClickBindingButton() {
             StartRebinding();
         }
         private bool IsKeyAllowed(KeyCode key) {

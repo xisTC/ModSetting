@@ -125,10 +125,13 @@ namespace ModSetting.UI {
             if (toggleClone != null) {
                 TextMeshProUGUI label = toggleClone.GetInstanceField<TextMeshProUGUI>("label");
                 Button rebindButton = toggleClone.GetInstanceField<Button>("rebindButton");
+                Button clearButton = toggleClone.GetInstanceField<Button>("clearButton");
                 InputIndicator indicator = toggleClone.GetInstanceField<InputIndicator>("indicator");
                 TextMeshProUGUI text = indicator.GetInstanceField<TextMeshProUGUI>("text");
                 GameObject toggleCloneGameObject = toggleClone.gameObject;
+                DestroyImmediate(clearButton.image);
                 DestroyImmediate(indicator);
+                DestroyImmediate(clearButton);
                 DestroyImmediate(toggleClone);
                 togglePrefab = toggleCloneGameObject.AddComponent<ToggleUI>();
                 togglePrefab.Init(label, rebindButton, text, "toggle默认文本");
@@ -142,14 +145,14 @@ namespace ModSetting.UI {
             if (keybinding != null) {
                 TextMeshProUGUI label = keybinding.GetInstanceField<TextMeshProUGUI>("label");
                 Button rebindButton = keybinding.GetInstanceField<Button>("rebindButton");
-                InputIndicator indicator =
-                    keybinding.GetInstanceField<InputIndicator>("indicator");
+                Button clearButton = keybinding.GetInstanceField<Button>("clearButton");
+                InputIndicator indicator = keybinding.GetInstanceField<InputIndicator>("indicator");
                 TextMeshProUGUI text = indicator.GetInstanceField<TextMeshProUGUI>("text");
                 GameObject keybindingGameObject = keybinding.gameObject;
                 DestroyImmediate(indicator);
                 DestroyImmediate(keybinding);
                 keyBindEntryPrefab = keybindingGameObject.AddComponent<KeyBindingUI>();
-                keyBindEntryPrefab.Init(label, rebindButton, text, "按键绑定默认文本", KeyCode.None);
+                keyBindEntryPrefab.Init(label, rebindButton,clearButton,text, "按键绑定默认文本", KeyCode.None);
                 Debug.Log("成功创建keyBindingPrefab预制体");
             }
         }

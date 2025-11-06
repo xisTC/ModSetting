@@ -118,14 +118,19 @@ namespace ModSetting {
             });
         }
 
-        public static void AddKeybinding(ModInfo modInfo,string key,string description,
-            KeyCode keyCode,Action<KeyCode> onValueChange=null) {
+        public static void AddKeybindingWithDefault(ModInfo modInfo,string key,string description,
+            KeyCode keyCode,KeyCode defaultKeyCode,Action<KeyCode> onValueChange=null) {
             AddAction(() => {
-                KeyBindingConfig keyBindingConfig = new KeyBindingConfig(key, description, keyCode);
+                KeyBindingConfig keyBindingConfig = new KeyBindingConfig(key,description,keyCode,defaultKeyCode);
                 ConfigManager.AddConfig(modInfo, keyBindingConfig);
                 globalPanelUI.AddKeybinding(modInfo, keyBindingConfig,onValueChange);
                 mainMenuPanelUI.AddKeybinding(modInfo, keyBindingConfig,onValueChange);
             });
+        }
+
+        public static void AddKeybinding(ModInfo modInfo, string key, string description,
+            KeyCode keyCode, Action<KeyCode> onValueChange = null) {
+            AddKeybindingWithDefault(modInfo, key, description, keyCode,KeyCode.None,onValueChange);
         }
 
         public static void AddInput(ModInfo modInfo,string key,string description,
