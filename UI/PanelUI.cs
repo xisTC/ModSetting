@@ -37,7 +37,7 @@ namespace ModSetting.UI {
                 .Where(button=>button!=optionsPanel.GetSelection())
                 .FirstOrDefault(item => item != null);
             if (tabButton == null) {
-                Debug.Log("找不到不为null的tab");
+                Debug.LogError("找不到不为null的tab");
                 return;
             }
             // 复制一个tabButton的游戏对象
@@ -81,7 +81,7 @@ namespace ModSetting.UI {
                 tabName.SetText("Mod设置");
             }
         }
-        #region InitPrefab
+        #region 初始化预制件
 
         protected void InitPrefab() {
             OptionsUIEntry_Dropdown optionDropDown = optionsPanel.gameObject
@@ -203,6 +203,7 @@ namespace ModSetting.UI {
 
         #endregion
 
+        #region 添加组件
         public bool AddDropDownList(ModInfo modInfo, DropDownConfig dropDownConfig,
             Action<string> onValueChange = null) {
             if (modContent == null || dropDownPrefab == null) return false;
@@ -286,7 +287,7 @@ namespace ModSetting.UI {
             titleUiDic.Add(modInfo.GetModId(), titleUI);
             return titleUI;
         }
-
+        #endregion
         private void OnEnable() {
             Init();
             keyBindingManager = new KeyBindingManager();
@@ -298,6 +299,8 @@ namespace ModSetting.UI {
             List<OptionsPanel_TabButton> tabButtons =
                 ReflectionExtension.GetInstanceField<List<OptionsPanel_TabButton>>(optionsPanel, "tabButtons");
             tabButtons.Remove(modTabButton);
+            OptionsPanel_TabButton firstTabButton = tabButtons.FirstOrDefault(tab=>tab!=null);
+            if (firstTabButton!=null)optionsPanel.SetSelection(firstTabButton);
             DestroySafely(modTabButton);
             DestroySafely(modContent);
             ChildOnDisable();

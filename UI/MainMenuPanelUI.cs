@@ -58,6 +58,7 @@ namespace ModSetting.UI {
 
         protected override void ChildOnDisable() {
             SceneLoader.onStartedLoadingScene -= OnStartedLoadingScene;
+            DestroySafely(save);
         }
 
         private void OnStartedLoadingScene(SceneLoadingContext sceneLoadingContext) {
