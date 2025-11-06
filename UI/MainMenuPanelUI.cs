@@ -1,6 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
 using Duckov.Options.UI;
+using ModSetting.Extensions;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 
@@ -26,8 +27,7 @@ namespace ModSetting.UI {
 
         private void ResetTab() {
             modTabButton.onClicked = null;
-            List<OptionsPanel_TabButton> tabButtons =
-                ReflectionExtension.GetInstanceField<List<OptionsPanel_TabButton>>(optionsPanel, "tabButtons");
+            List<OptionsPanel_TabButton> tabButtons = optionsPanel.GetInstanceField<List<OptionsPanel_TabButton>>("tabButtons");
             if (tabButtons == null) {
                 Debug.LogError("反射获取tabButtons失败");
                 return;
@@ -43,8 +43,8 @@ namespace ModSetting.UI {
             // 添加到tabButtons列表
             tabButtons.Add(modTabButton);
             // 调用Setup更新UI
-            ReflectionExtension.InvokeInstanceMethod(optionsPanel, "Setup");
-            var tab = ReflectionExtension.GetInstanceField<GameObject>(tabButton, "tab");
+            optionsPanel.InvokeInstanceMethod("Setup");
+            var tab = tabButton.GetInstanceField<GameObject>("tab");
             if (tab == null) {
                 Debug.LogError("无法反射获取tabButton的tab成员");
                 return;

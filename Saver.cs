@@ -5,6 +5,7 @@ using System.Linq;
 using Duckov.Modding;
 using ModSetting.Config;
 using ModSetting.Config.Data;
+using ModSetting.Extensions;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Converters;
 using UnityEngine;

@@ -5,6 +5,7 @@ using Duckov.Modding;
 using Duckov.Options.UI;
 using Duckov.Utilities;
 using ModSetting.Config;
+using ModSetting.Extensions;
 using SodaCraft.Localizations;
 using TMPro;
 using UnityEngine;
@@ -27,8 +28,7 @@ namespace ModSetting.UI {
         public bool IsInit { get; protected set; }
         public abstract void Init();
         protected void InitTab() {
-            List<OptionsPanel_TabButton> tabButtons =
-                ReflectionExtension.GetInstanceField<List<OptionsPanel_TabButton>>(optionsPanel, "tabButtons");
+            List<OptionsPanel_TabButton> tabButtons = optionsPanel.GetInstanceField<List<OptionsPanel_TabButton>>("tabButtons");
             if (tabButtons == null) {
                 Debug.LogError("反射获取tabButtons失败");
                 return;
@@ -51,7 +51,7 @@ namespace ModSetting.UI {
                 return;
             }
             // 获取原始tab并克隆
-            var tab = ReflectionExtension.GetInstanceField<GameObject>(modTabButton, "tab");
+            var tab = modTabButton.GetInstanceField<GameObject>("tab");
             if (tab == null) {
                 Debug.LogError("无法反射获取modTabButton的tab成员");
                 DestroySafely(tabButtonGameObjectClone);
@@ -61,7 +61,7 @@ namespace ModSetting.UI {
             modContent.name = "modContent";
             modContent.transform.DestroyAllChildren();
             // 设置克隆的tab到tabButton            
-            bool result = ReflectionExtension.SetInstanceField(modTabButton, "tab", modContent);
+            bool result = modTabButton.SetInstanceField("tab", modContent);
             if (!result) {
                 Debug.LogError("反射修改tab成员失败!!");
                 DestroySafely(tabButtonGameObjectClone);
@@ -71,7 +71,7 @@ namespace ModSetting.UI {
             // 添加到tabButtons列表
             tabButtons.Add(modTabButton);
             // 调用Setup更新UI
-            ReflectionExtension.InvokeInstanceMethod(optionsPanel, "Setup");
+            optionsPanel.InvokeInstanceMethod("Setup");
             TextMeshProUGUI tabName = modTabButton.GetComponentInChildren<TextMeshProUGUI>(true);
             if (tabName != null) {
                 // 移除本地化组件, 保证文本设置正常
@@ -123,11 +123,10 @@ namespace ModSetting.UI {
             if (keybindingEntry == null) return;
             UIKeybindingEntry toggleClone = Instantiate(keybindingEntry);
             if (toggleClone != null) {
-                TextMeshProUGUI label = ReflectionExtension.GetInstanceField<TextMeshProUGUI>(toggleClone, "label");
-                Button rebindButton = ReflectionExtension.GetInstanceField<Button>(toggleClone, "rebindButton");
-                InputIndicator indicator =
-                    ReflectionExtension.GetInstanceField<InputIndicator>(toggleClone, "indicator");
-                TextMeshProUGUI text = ReflectionExtension.GetInstanceField<TextMeshProUGUI>(indicator, "text");
+                TextMeshProUGUI label = toggleClone.GetInstanceField<TextMeshProUGUI>("label");
+                Button rebindButton = toggleClone.GetInstanceField<Button>("rebindButton");
+                InputIndicator indicator = toggleClone.GetInstanceField<InputIndicator>("indicator");
+                TextMeshProUGUI text = indicator.GetInstanceField<TextMeshProUGUI>("text");
                 GameObject toggleCloneGameObject = toggleClone.gameObject;
                 DestroyImmediate(indicator);
                 DestroyImmediate(toggleClone);
@@ -141,11 +140,11 @@ namespace ModSetting.UI {
             if (keybindingEntry == null) return;
             UIKeybindingEntry keybinding = Instantiate(keybindingEntry);
             if (keybinding != null) {
-                TextMeshProUGUI label = ReflectionExtension.GetInstanceField<TextMeshProUGUI>(keybinding, "label");
-                Button rebindButton = ReflectionExtension.GetInstanceField<Button>(keybinding, "rebindButton");
+                TextMeshProUGUI label = keybinding.GetInstanceField<TextMeshProUGUI>("label");
+                Button rebindButton = keybinding.GetInstanceField<Button>("rebindButton");
                 InputIndicator indicator =
-                    ReflectionExtension.GetInstanceField<InputIndicator>(keybinding, "indicator");
-                TextMeshProUGUI text = ReflectionExtension.GetInstanceField<TextMeshProUGUI>(indicator, "text");
+                    keybinding.GetInstanceField<InputIndicator>("indicator");
+                TextMeshProUGUI text = indicator.GetInstanceField<TextMeshProUGUI>("text");
                 GameObject keybindingGameObject = keybinding.gameObject;
                 DestroyImmediate(indicator);
                 DestroyImmediate(keybinding);
@@ -159,10 +158,9 @@ namespace ModSetting.UI {
             if (optionSlider == null) return;
             OptionsUIEntry_Slider sliderClone = Instantiate(optionSlider);
             if (sliderClone != null) {
-                TextMeshProUGUI label = ReflectionExtension.GetInstanceField<TextMeshProUGUI>(sliderClone, "label");
-                Slider slider = ReflectionExtension.GetInstanceField<Slider>(sliderClone, "slider");
-                TMP_InputField inputField =
-                    ReflectionExtension.GetInstanceField<TMP_InputField>(sliderClone, "valueField");
+                TextMeshProUGUI label = sliderClone.GetInstanceField<TextMeshProUGUI>("label");
+                Slider slider = sliderClone.GetInstanceField<Slider>("slider");
+                TMP_InputField inputField = sliderClone.GetInstanceField<TMP_InputField>("valueField");
                 GameObject sliderGameObject = sliderClone.gameObject;
                 DestroyImmediate(sliderClone);
                 Destroy(slider.gameObject);
@@ -175,10 +173,9 @@ namespace ModSetting.UI {
             if (optionSlider == null) return;
             OptionsUIEntry_Slider entrySlider = Instantiate(optionSlider);
             if (entrySlider != null) {
-                TextMeshProUGUI label = ReflectionExtension.GetInstanceField<TextMeshProUGUI>(entrySlider, "label");
-                Slider slider = ReflectionExtension.GetInstanceField<Slider>(entrySlider, "slider");
-                TMP_InputField inputField =
-                    ReflectionExtension.GetInstanceField<TMP_InputField>(entrySlider, "valueField");
+                TextMeshProUGUI label = entrySlider.GetInstanceField<TextMeshProUGUI>("label");
+                Slider slider = entrySlider.GetInstanceField<Slider>("slider");
+                TMP_InputField inputField = entrySlider.GetInstanceField<TMP_InputField>("valueField");
                 GameObject sliderGameObject = entrySlider.gameObject;
                 DestroyImmediate(entrySlider);
                 sliderPrefab = sliderGameObject.AddComponent<SliderUI>();
@@ -190,8 +187,8 @@ namespace ModSetting.UI {
             if (optionDropDown == null) return;
             OptionsUIEntry_Dropdown dropDown = Instantiate(optionDropDown);
             if (dropDown != null) {
-                TextMeshProUGUI label = ReflectionExtension.GetInstanceField<TextMeshProUGUI>(dropDown, "label");
-                TMP_Dropdown dropdown = ReflectionExtension.GetInstanceField<TMP_Dropdown>(dropDown, "dropdown");
+                TextMeshProUGUI label = dropDown.GetInstanceField<TextMeshProUGUI>("label");
+                TMP_Dropdown dropdown = dropDown.GetInstanceField<TMP_Dropdown>("dropdown");
                 GameObject dropDownGameObject = dropDown.gameObject;
                 DestroyImmediate(dropDown);
                 dropDownPrefab = dropDownGameObject.AddComponent<DropDownUI>();
@@ -297,7 +294,7 @@ namespace ModSetting.UI {
         private void OnDisable() {
             //还要移除panel中的引用
             List<OptionsPanel_TabButton> tabButtons =
-                ReflectionExtension.GetInstanceField<List<OptionsPanel_TabButton>>(optionsPanel, "tabButtons");
+                optionsPanel.GetInstanceField<List<OptionsPanel_TabButton>>("tabButtons");
             tabButtons.Remove(modTabButton);
             OptionsPanel_TabButton firstTabButton = tabButtons.FirstOrDefault(tab=>tab!=null);
             if (firstTabButton!=null)optionsPanel.SetSelection(firstTabButton);

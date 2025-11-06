@@ -1,9 +1,9 @@
 ﻿using System.Reflection;
 using UnityEngine;
 
-namespace ModSetting {
+namespace ModSetting.Extensions {
     public static class ReflectionExtension {
-        public static T GetInstanceField<T>(object instance, string fieldName,
+        public static T GetInstanceField<T>(this object instance, string fieldName,
             BindingFlags bindingFlags = BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance)
             where T : class {
             FieldInfo fieldInfo = GetInstanceFieldInfo(instance, fieldName, bindingFlags);
@@ -15,7 +15,7 @@ namespace ModSetting {
             return instance.GetType().GetField(fieldName, bindingFlags);
         }
 
-        public static bool SetInstanceField(object instance, string fieldName, object newValue) {
+        public static bool SetInstanceField(this object instance, string fieldName, object newValue) {
             FieldInfo fieldInfo = GetInstanceFieldInfo(instance, fieldName);
             if (fieldInfo == null) {
                 Debug.Log(fieldName+"=>设置字段失败，字段信息为null:");
@@ -25,7 +25,7 @@ namespace ModSetting {
             return true;
         }
 
-        public static void InvokeInstanceMethod(object instance, string methodName, object[] parameters = null,
+        public static void InvokeInstanceMethod(this object instance, string methodName, object[] parameters = null,
             BindingFlags bindingFlags = BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance) {
             MethodInfo methodInfo = instance.GetType().GetMethod(methodName,bindingFlags);
             if (methodInfo == null) {
