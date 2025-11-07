@@ -19,6 +19,7 @@ public static class ModSettingAPI {
     private const string GET_SAVED_VALUE = "GetSavedValue";
     private const string ADD_KEYBINDING_WITH_DEFAULT = "AddKeybindingWithDefault";
     private const string ADD_BUTTON = "AddButton";
+    private const string ADD_GROUP = "AddGroup";
     private static float Version = 0.3f;
     public const string MOD_NAME = "ModSetting";
     private const string TYPE_NAME = "ModSetting.ModBehaviour";
@@ -42,7 +43,9 @@ public static class ModSettingAPI {
         ADD_INPUT,
         HAS_CONFIG,
         GET_SAVED_VALUE,
-        ADD_KEYBINDING_WITH_DEFAULT
+        ADD_KEYBINDING_WITH_DEFAULT,
+        ADD_BUTTON,
+        ADD_GROUP
     };
 
     public static bool Init(ModInfo modInfo) {
@@ -68,19 +71,20 @@ public static class ModSettingAPI {
     public static bool AddDropdownList(string key, string description,
         List<string> options, string defaultValue, Action<string> onValueChange = null) {
         if (!Available(key)) return false;
-        Type delegateType = typeof(Action<ModInfo,string,string,List<string>,string,Action<string>>);
+        Type delegateType = typeof(Action<ModInfo, string, string, List<string>, string, Action<string>>);
         return InvokeMethod(ADD_DROP_DOWN_LIST,
             ADD_DROP_DOWN_LIST,
-            new object[]{modInfo,key,description,options,defaultValue,onValueChange},
+            new object[] { modInfo, key, description, options, defaultValue, onValueChange },
             delegateType);
     }
 
     public static bool AddSlider(string key, string description,
-        float defaultValue, Vector2 sliderRange, Action<float> onValueChange = null,int decimalPlaces = 1,int characterLimit=5) {
+        float defaultValue, Vector2 sliderRange, Action<float> onValueChange = null, int decimalPlaces = 1,
+        int characterLimit = 5) {
         if (!Available(key)) return false;
         Type[] paramTypes = {
             typeof(ModInfo), typeof(string), typeof(string),
-            typeof(float), typeof(Vector2),typeof(Action<float>),typeof(int),typeof(int)
+            typeof(float), typeof(Vector2), typeof(Action<float>), typeof(int), typeof(int)
         };
         Type delegateType = typeof(Action<ModInfo, string, string, float, Vector2, Action<float>, int, int>);
         return InvokeMethod(ADD_SLIDER + "Float",
@@ -92,13 +96,13 @@ public static class ModSettingAPI {
     }
 
     public static bool AddSlider(string key, string description,
-        int defaultValue, int minValue, int maxValue, Action<int> onValueChange = null,int characterLimit=5) {
+        int defaultValue, int minValue, int maxValue, Action<int> onValueChange = null, int characterLimit = 5) {
         if (!Available(key)) return false;
         Type[] paramTypes = {
             typeof(ModInfo), typeof(string), typeof(string),
-            typeof(int), typeof(int), typeof(int), typeof(Action<int>),typeof(int)
+            typeof(int), typeof(int), typeof(int), typeof(Action<int>), typeof(int)
         };
-        Type delegateType = typeof(Action<ModInfo,string,string,int,int,int,Action<int>,int>);
+        Type delegateType = typeof(Action<ModInfo, string, string, int, int, int, Action<int>, int>);
         return InvokeMethod(ADD_SLIDER + "Int", ADD_SLIDER,
             new object[]
                 { modInfo, key, description, defaultValue, minValue, maxValue, onValueChange, characterLimit },
@@ -122,7 +126,7 @@ public static class ModSettingAPI {
         return InvokeMethod(ADD_KEYBINDING,
             ADD_KEYBINDING,
             new object[] { modInfo, key, description, keyCode, onValueChange },
-            typeof(Action<ModInfo,string,string,KeyCode,Action<KeyCode>>));
+            typeof(Action<ModInfo, string, string, KeyCode, Action<KeyCode>>));
     }
 
     public static bool AddKeybindingWithDefault(string key, string description,
@@ -130,8 +134,8 @@ public static class ModSettingAPI {
         if (!Available(key)) return false;
         return InvokeMethod(ADD_KEYBINDING_WITH_DEFAULT,
             ADD_KEYBINDING_WITH_DEFAULT,
-            new object[] { modInfo, key, description, keyCode,defaultKeyCode,onValueChange },
-            typeof(Action<ModInfo,string,string,KeyCode,KeyCode,Action<KeyCode>>));
+            new object[] { modInfo, key, description, keyCode, defaultKeyCode, onValueChange },
+            typeof(Action<ModInfo, string, string, KeyCode, KeyCode, Action<KeyCode>>));
     }
 
     public static bool AddInput(string key, string description,
@@ -148,9 +152,19 @@ public static class ModSettingAPI {
         if (!Available(key)) return false;
         return InvokeMethod(ADD_BUTTON,
             ADD_BUTTON,
-            new object[] { modInfo, key, description, buttonText, onClickButton},
-            typeof(Action<ModInfo, string, string, string,Action>));
+            new object[] { modInfo, key, description, buttonText, onClickButton },
+            typeof(Action<ModInfo, string, string, string, Action>));
     }
+
+    public static bool AddGroup(string key, string description, List<string> keys,
+        float scale=0.7f, bool topInsert = false, bool open = false) {
+        if (!Available(key)) return false;
+        return InvokeMethod(ADD_GROUP,
+            ADD_GROUP,
+            new object[] { modInfo, key, description, keys, scale,topInsert,open},
+            typeof(Action<ModInfo, string, string, List<string>, float,bool,bool>));
+    }
+
     public static bool GetValue<T>(string key, Action<T> callback = null) {
         if (!Available(key)) return false;
         MethodInfo methodInfo = GetStaticPublicMethodInfo(GET_VALUE);
@@ -173,7 +187,7 @@ public static class ModSettingAPI {
         if (!Available()) return false;
         MethodInfo methodInfo = GetStaticPublicMethodInfo(HAS_CONFIG);
         if (methodInfo == null) return false;
-        return (bool)methodInfo.Invoke(null,new object[]{modInfo});
+        return (bool)methodInfo.Invoke(null, new object[] { modInfo });
     }
 
     public static bool GetSavedValue<T>(string key, out T value) {
@@ -181,10 +195,10 @@ public static class ModSettingAPI {
         if (!Available(key)) return false;
         MethodInfo methodInfo = GetStaticPublicMethodInfo(GET_SAVED_VALUE);
         if (methodInfo == null) return false;
-        MethodInfo genericMethod=methodInfo.MakeGenericMethod(typeof(T));
+        MethodInfo genericMethod = methodInfo.MakeGenericMethod(typeof(T));
         // 准备参数数组（注意：out 参数需要特殊处理）
         object[] parameters = new object[] { modInfo, key, null };
-        bool result=(bool)genericMethod.Invoke(null,parameters);
+        bool result = (bool)genericMethod.Invoke(null, parameters);
         // 获取 out 参数的值
         value = (T)parameters[2];
         return result;
@@ -200,7 +214,7 @@ public static class ModSettingAPI {
 
     public static bool RemoveMod(Action<bool> callback = null) {
         if (!Available()) return false;
-        Type delegateType = typeof(Action<ModInfo,Action<bool>>);
+        Type delegateType = typeof(Action<ModInfo, Action<bool>>);
         return InvokeMethod(REMOVE_MOD, REMOVE_MOD, new object[] { modInfo, callback }, delegateType);
     }
 
@@ -220,8 +234,10 @@ public static class ModSettingAPI {
                 Debug.LogWarning($"警告:ModSetting的版本:{modSettingVersion} (API的版本:{Version}),新功能将无法使用");
                 return false;
             }
+
             return true;
         }
+
         return false;
     }
 
@@ -275,21 +291,19 @@ public static class ModSettingAPI {
         return false;
     }
 
-    private static bool InvokeMethod(string cacheKey,string methodName,object[] parameters,Type delegateType,Type[] paramTypes=null) {
-        if (!methodCache.ContainsKey(cacheKey))
-        {
-            MethodInfo method = GetStaticPublicMethodInfo(methodName,paramTypes);
+    private static bool InvokeMethod(string cacheKey, string methodName, object[] parameters, Type delegateType,
+        Type[] paramTypes = null) {
+        if (!methodCache.ContainsKey(cacheKey)) {
+            MethodInfo method = GetStaticPublicMethodInfo(methodName, paramTypes);
             if (method == null) return false;
             // 创建委托
             methodCache[cacheKey] = Delegate.CreateDelegate(delegateType, method);
         }
-        try
-        {
+
+        try {
             methodCache[cacheKey].DynamicInvoke(parameters);
             return true;
-        }
-        catch (Exception ex)
-        {
+        } catch (Exception ex) {
             Debug.LogError($"委托调用{methodName}失败: {ex.Message}");
             return false;
         }

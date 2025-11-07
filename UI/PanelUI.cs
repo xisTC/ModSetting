@@ -23,8 +23,9 @@ namespace ModSetting.UI {
         private TitleUI titlePrefab;
         private InputUI inputPrefab;
         private ButtonUI buttonPrefab;
-        protected float titleHeight;
-        private readonly Dictionary<string, TitleUI> titleUiDic = new Dictionary<string, TitleUI>();
+        private GroupUI groupPrefab;
+        public float TitleHeight { get; protected set; }
+        private readonly Dictionary<string, TitleUI> titleUiDic = new();
         private KeyBindingManager keyBindingManager;
         public bool IsInit { get; protected set; }
         public abstract void Init();
@@ -91,6 +92,7 @@ namespace ModSetting.UI {
                 .FirstOrDefault(item => item != null);
             CreateDropDownPrefab(optionDropDown);
             CreateTitlePrefab(optionDropDown);
+            CreateGroupPrefab(optionDropDown);
             OptionsUIEntry_Slider optionSlider = optionsPanel.gameObject
                 .GetComponentsInChildren<OptionsUIEntry_Slider>(true)
                 .FirstOrDefault(item => item != null);
@@ -106,6 +108,9 @@ namespace ModSetting.UI {
             DontDestroyOnLoad(keyBindEntryPrefab);
             DontDestroyOnLoad(togglePrefab);
             DontDestroyOnLoad(titlePrefab);
+            DontDestroyOnLoad(inputPrefab);
+            DontDestroyOnLoad(buttonPrefab);
+            DontDestroyOnLoad(groupPrefab);
         }
 
         private void CreateTitlePrefab(OptionsUIEntry_Dropdown optionDropDown) {
@@ -120,7 +125,18 @@ namespace ModSetting.UI {
                 Debug.Log("成功创建titlePrefab预制体");
             }
         }
-
+        private void CreateGroupPrefab(OptionsUIEntry_Dropdown optionDropDown) {
+            if (optionDropDown == null) return;
+            OptionsUIEntry_Dropdown groupClone = Instantiate(optionDropDown);
+            if (groupClone != null) {
+                groupClone.transform.DestroyAllChildren();
+                GameObject groupCloneGameObject = groupClone.gameObject;
+                DestroyImmediate(groupClone);
+                groupPrefab = groupCloneGameObject.AddComponent<GroupUI>();
+                groupPrefab.Init();
+                Debug.Log("成功创建groupPrefab预制体");
+            }
+        }
         private void CreateTogglePrefab(UIKeybindingEntry keybindingEntry) {
             if (keybindingEntry == null) return;
             UIKeybindingEntry toggleClone = Instantiate(keybindingEntry);
@@ -280,6 +296,21 @@ namespace ModSetting.UI {
             AddUnderTheTitle(modInfo, key, buttonUI.gameObject);
             return true;
         }
+
+        public bool AddGroup(ModInfo modInfo, string key, string description, List<string> keys, float height,bool top,bool open) {
+            if (modContent == null || groupPrefab == null) return false;
+            if (keys.Contains(key)) return false;
+            TitleUI titleUI = AddOrGetTitle(modInfo);
+            if (titleUI.HasNest(keys)) {
+                Debug.LogWarning($"暂不支持Group嵌套");
+                ConfigManager.RemoveUI(modInfo, key);
+                return false;
+            }
+            GroupUI groupUI = Instantiate(groupPrefab, modContent.transform);
+            groupUI.Setup(description,keys,height,open);
+            titleUI.AddGroup(key,groupUI,keys,top);
+            return true;
+        }
         public bool RemoveUI(ModInfo modInfo, string key) {
             if (titleUiDic.TryGetValue(modInfo.GetModId(), out var titleUI)) {
                 keyBindingManager.RemoveModKeyBinding(modInfo, key);
@@ -313,7 +344,7 @@ namespace ModSetting.UI {
             if (titleUiDic.TryGetValue(modInfo.GetModId(), out var title)) return title;
             if (modContent == null || titlePrefab == null) return null;
             TitleUI titleUI = Instantiate(titlePrefab, modContent.transform);
-            titleUI.Setup(modInfo.preview, modInfo.displayName, titleHeight);
+            titleUI.Setup(modInfo.preview, modInfo.displayName, TitleHeight);
             titleUiDic.Add(modInfo.GetModId(), titleUI);
             return titleUI;
         }
@@ -333,6 +364,14 @@ namespace ModSetting.UI {
             if (firstTabButton!=null)optionsPanel.SetSelection(firstTabButton);
             DestroySafely(modTabButton);
             DestroySafely(modContent);
+            DestroySafely(dropDownPrefab);
+            DestroySafely(sliderPrefab);
+            DestroySafely(togglePrefab);
+            DestroySafely(keyBindEntryPrefab);
+            DestroySafely(titlePrefab);
+            DestroySafely(inputPrefab);
+            DestroySafely(buttonPrefab);
+            DestroySafely(groupPrefab);
             ChildOnDisable();
         }
 

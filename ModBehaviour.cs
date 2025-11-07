@@ -182,7 +182,26 @@ namespace ModSetting {
                 mainMenuPanelUI.AddButton(modInfo,key,description,buttonText,onClickButton);
             });
         }
-
+        public static void AddGroup(ModInfo modInfo, string key, string description,
+            List<string> keys, float scale=0.7f,bool topInsert=false,bool open=false) {
+            if (keys.Contains(key)) keys.Remove(key);
+            AddAction(modInfo,() => {
+                if (ConfigManager.HasKey(modInfo, key)) {
+                    Debug.LogWarning("已经有相同的key无法添加,key:"+key);
+                    return;
+                }
+                foreach (string otherKey in keys) {
+                    if (!ConfigManager.HasKey(modInfo,otherKey)) {
+                        Debug.LogError("不存在的key无法添加Group,key:"+otherKey);
+                        return;
+                    }
+                }
+                ConfigManager.AddKey(modInfo,key);
+                scale = Math.Clamp(scale, 0f, 0.9f);
+                globalPanelUI.AddGroup(modInfo,key, description, keys, scale*globalPanelUI.TitleHeight,topInsert, open);
+                mainMenuPanelUI.AddGroup(modInfo,key,description,keys, scale*mainMenuPanelUI.TitleHeight,topInsert, open);
+            });
+        }
         public static void GetValue<T>(ModInfo modInfo, string key,Action<T> callback=null) {
             AddAction(modInfo,() => {
                 T value = ConfigManager.GetValue<T>(modInfo, key);
@@ -229,6 +248,7 @@ namespace ModSetting {
             if (globalPanelUI.HasTitle(arg1)) {
                 globalPanelUI.RemoveTitle(arg1);
                 mainMenuPanelUI.RemoveTitle(arg1);
+                ConfigManager.RemoveMod(arg1);
                 Saver.UpdateConfig(ConfigManager.GetConfig(arg1));
             }
         }

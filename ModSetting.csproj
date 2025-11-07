@@ -645,6 +645,7 @@
         <Compile Include="UI\ButtonUI.cs" />
         <Compile Include="UI\DropDownUI.cs" />
         <Compile Include="UI\GlobalPanelUI.cs" />
+        <Compile Include="UI\GroupUI.cs" />
         <Compile Include="UI\InputUI.cs" />
         <Compile Include="UI\KeyBindingUI.cs" />
         <Compile Include="UI\MainMenuPanelUI.cs" />

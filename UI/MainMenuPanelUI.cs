@@ -15,7 +15,7 @@ namespace ModSetting.UI {
             if (!IsInit) {
                 save = new GameObject("save");
                 DontDestroyOnLoad(save);
-                titleHeight = 100f;
+                TitleHeight = 100f;
                 InitTab();
                 InitPrefab();
                 IsInit = true;

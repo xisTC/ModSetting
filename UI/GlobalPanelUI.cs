@@ -9,7 +9,7 @@ using UnityEngine;
 namespace ModSetting.UI {
     public class GlobalPanelUI : PanelUI {
         public override void Init() {
-            titleHeight = 50f;
+            TitleHeight = 50f;
             optionsPanel = FindObjectsOfType<OptionsPanel>(true)
                 .FirstOrDefault(panel => panel.gameObject.scene.name == "DontDestroyOnLoad");
             InitTab();
