@@ -18,6 +18,7 @@ public static class ModSettingAPI {
     private const string HAS_CONFIG = "HasConfig";
     private const string GET_SAVED_VALUE = "GetSavedValue";
     private const string ADD_KEYBINDING_WITH_DEFAULT = "AddKeybindingWithDefault";
+    private const string ADD_BUTTON = "AddButton";
     private static float Version = 0.3f;
     public const string MOD_NAME = "ModSetting";
     private const string TYPE_NAME = "ModSetting.ModBehaviour";
@@ -142,6 +143,14 @@ public static class ModSettingAPI {
             typeof(Action<ModInfo, string, string, string, int, Action<string>>));
     }
 
+    public static bool AddButton(string key, string description,
+        string buttonText = "按钮", Action onClickButton = null) {
+        if (!Available(key)) return false;
+        return InvokeMethod(ADD_BUTTON,
+            ADD_BUTTON,
+            new object[] { modInfo, key, description, buttonText, onClickButton},
+            typeof(Action<ModInfo, string, string, string,Action>));
+    }
     public static bool GetValue<T>(string key, Action<T> callback = null) {
         if (!Available(key)) return false;
         MethodInfo methodInfo = GetStaticPublicMethodInfo(GET_VALUE);

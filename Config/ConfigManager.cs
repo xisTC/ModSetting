@@ -23,7 +23,7 @@ namespace ModSetting.Config {
         public static T GetValue<T>(ModInfo info, string key) {
             if (configs.TryGetValue(info.GetModId(), out var modConfig))
                 return modConfig.GetValue<T>(key);
-            Debug.LogError($"找不到此{info.displayName}的值,key:" + key);
+            Debug.LogError($"找不到此{info.displayName}的modId,key:" + key);
             return default;
         }
 
@@ -33,14 +33,32 @@ namespace ModSetting.Config {
             Debug.LogError($"找不到此{info.displayName}的配置,无法设置值");
             return false;
         }
-        public static bool RemoveUI(ModInfo info, string key) => configs.ContainsKey(info.GetModId());
-        public static bool RemoveMod(ModInfo info) => configs.ContainsKey(info.GetModId());
+
+        public static bool HasKey(ModInfo modInfo, string key) =>
+            configs.ContainsKey(modInfo.GetModId()) && configs[modInfo.GetModId()].HasKey(key);
+
+        public static bool RemoveUI(ModInfo info, string key) =>
+            configs.ContainsKey(info.GetModId()) && configs[info.GetModId()].RemoveKey(key);
+
+        public static bool RemoveMod(ModInfo info) =>
+            configs.ContainsKey(info.GetModId()) && configs[info.GetModId()].Clear();
+
         public static void Clear() => configs.Clear();
         public static List<ModConfig> GetConfigs() => configs.Values.ToList();
 
         public static ModConfig GetConfig(ModInfo info) {
             configs.TryGetValue(info.GetModId(), out var modConfig);
             return modConfig;
+        }
+
+        public static void AddKey(ModInfo modInfo, string key) {
+            if (configs.TryGetValue(modInfo.GetModId(),out var modConfig)) {
+                modConfig.AddKey(key);
+            } else {
+                modConfig = new ModConfig(modInfo);
+                modConfig.AddKey(key);
+                configs.Add(modInfo.GetModId(), modConfig);
+            }
         }
     }
 }

@@ -59,19 +59,26 @@ namespace ModSetting {
             Debug.Log("添加完毕");
         }
 
-        private static void AddAction(Action addConfigAction) {
+        private static void AddAction(ModInfo modInfo,Action addConfigAction) {
             if (isInit&&globalPanelUI.IsInit && mainMenuPanelUI.IsInit) {
                 addConfigAction?.Invoke();
             } else {
                 actionQueue.Enqueue(addConfigAction);
-                Debug.Log($"加入队列，等待mod菜单初始化。当前队列长度: {actionQueue.Count}");
+                Debug.Log($"{modInfo.name}加入队列，等待mod菜单初始化。当前队列长度: {actionQueue.Count}");
             }
         }
 
         public static void AddDropDownList(ModInfo modInfo,string key,string description,
             List<string> options, string defaultValue,Action<string> onValueChange=null) {
-            if (!options.Contains(defaultValue)) options.Add(defaultValue);
-            AddAction(() => {
+            if (!options.Contains(defaultValue)) {
+                Debug.LogWarning("下拉列表options不包含此默认值,默认值:"+defaultValue);
+                options.Add(defaultValue);
+            }
+            AddAction(modInfo,() => {
+                if (ConfigManager.HasKey(modInfo, key)) {
+                    Debug.LogWarning("已经有相同的key无法添加,key:"+key);
+                    return;
+                }
                 DropDownConfig dropDownConfig = new DropDownConfig(key, description, options, defaultValue);
                 ConfigManager.AddConfig(modInfo, dropDownConfig);
                 globalPanelUI.AddDropDownList(modInfo,dropDownConfig,onValueChange);
@@ -84,7 +91,11 @@ namespace ModSetting {
             int decimalPlaces=1,int characterLimit=5) {
             if (sliderRange.x > sliderRange.y) sliderRange = new Vector2(sliderRange.y, sliderRange.x);
             defaultValue = Math.Clamp(defaultValue, sliderRange.x, sliderRange.y);
-            AddAction(() => {
+            AddAction(modInfo,() => {
+                if (ConfigManager.HasKey(modInfo, key)) {
+                    Debug.LogWarning("已经有相同的key无法添加,key:"+key);
+                    return;
+                }
                 SliderConfig sliderConfig = new SliderConfig(key, description,defaultValue,sliderRange,decimalPlaces,characterLimit);
                 ConfigManager.AddConfig(modInfo, sliderConfig);
                 globalPanelUI.AddSlider(modInfo,sliderConfig,onValueChange);
@@ -97,11 +108,15 @@ namespace ModSetting {
             minValue = minValue < maxValue ? minValue : maxValue;
             maxValue = minValue < maxValue ? maxValue : minValue;
             defaultValue = Math.Clamp(defaultValue, minValue, maxValue);
-            AddAction(() => {
+            AddAction(modInfo,() => {
+                if (ConfigManager.HasKey(modInfo, key)) {
+                    Debug.LogWarning("已经有相同的key无法添加,key:"+key);
+                    return;
+                }
                 SliderConfig sliderConfig = new SliderConfig(key, description,defaultValue,new Vector2(minValue,maxValue),0,characterLimit);
                 ConfigManager.AddConfig(modInfo, sliderConfig);
                 Action<float> floatCallback = onValueChange != null ? 
-                    (Action<float>)(floatValue => onValueChange((int)floatValue)) :
+                    floatValue => onValueChange((int)floatValue) :
                     null;
                 globalPanelUI.AddSlider(modInfo,sliderConfig,floatCallback);
                 mainMenuPanelUI.AddSlider(modInfo,sliderConfig,floatCallback);
@@ -110,7 +125,11 @@ namespace ModSetting {
 
         public static void AddToggle(ModInfo modInfo,string key,string description,
             bool enable, Action<bool> onValueChange = null) {
-            AddAction(() => {
+            AddAction(modInfo,() => {
+                if (ConfigManager.HasKey(modInfo, key)) {
+                    Debug.LogWarning("已经有相同的key无法添加,key:"+key);
+                    return;
+                }
                 ToggleConfig toggleConfig = new ToggleConfig(key, description, enable);
                 ConfigManager.AddConfig(modInfo, toggleConfig);
                 globalPanelUI.AddToggle(modInfo,toggleConfig,onValueChange);
@@ -120,7 +139,11 @@ namespace ModSetting {
 
         public static void AddKeybindingWithDefault(ModInfo modInfo,string key,string description,
             KeyCode keyCode,KeyCode defaultKeyCode,Action<KeyCode> onValueChange=null) {
-            AddAction(() => {
+            AddAction(modInfo,() => {
+                if (ConfigManager.HasKey(modInfo, key)) {
+                    Debug.LogWarning("已经有相同的key无法添加,key:"+key);
+                    return;
+                }
                 KeyBindingConfig keyBindingConfig = new KeyBindingConfig(key,description,keyCode,defaultKeyCode);
                 ConfigManager.AddConfig(modInfo, keyBindingConfig);
                 globalPanelUI.AddKeybinding(modInfo, keyBindingConfig,onValueChange);
@@ -135,7 +158,11 @@ namespace ModSetting {
 
         public static void AddInput(ModInfo modInfo,string key,string description,
             string defaultValue,int characterLimit=40,Action<string> onValueChange=null) {
-            AddAction(() => {
+            AddAction(modInfo,() => {
+                if (ConfigManager.HasKey(modInfo, key)) {
+                    Debug.LogWarning("已经有相同的key无法添加,key:"+key);
+                    return;
+                }
                 InputConfig inputConfig = new InputConfig(key,description,defaultValue,characterLimit);
                 ConfigManager.AddConfig(modInfo, inputConfig);
                 globalPanelUI.AddInput(modInfo, inputConfig,onValueChange);
@@ -143,16 +170,29 @@ namespace ModSetting {
             });
         }
 
-        public static void GetValue<T>(ModInfo info, string key,Action<T> callback=null) {
-            AddAction(() => {
-                T value = ConfigManager.GetValue<T>(info, key);
+        public static void AddButton(ModInfo modInfo, string key, string description,
+            string buttonText="按钮", Action onClickButton = null) {
+            AddAction(modInfo,() => {
+                if (ConfigManager.HasKey(modInfo, key)) {
+                    Debug.LogWarning("已经有相同的key无法添加,key:"+key);
+                    return;
+                }
+                ConfigManager.AddKey(modInfo,key);
+                globalPanelUI.AddButton(modInfo,key, description, buttonText, onClickButton);
+                mainMenuPanelUI.AddButton(modInfo,key,description,buttonText,onClickButton);
+            });
+        }
+
+        public static void GetValue<T>(ModInfo modInfo, string key,Action<T> callback=null) {
+            AddAction(modInfo,() => {
+                T value = ConfigManager.GetValue<T>(modInfo, key);
                 callback?.Invoke(value);
             });
         }
 
-        public static void SetValue<T>(ModInfo info, string key,T value,Action<bool> callback=null) {
-            AddAction(() => {
-                bool result = ConfigManager.SetValue<T>(info, key, value);
+        public static void SetValue<T>(ModInfo modInfo, string key,T value,Action<bool> callback=null) {
+            AddAction(modInfo,() => {
+                bool result = ConfigManager.SetValue<T>(modInfo, key, value);
                 callback?.Invoke(result);
             });
         }
@@ -164,10 +204,10 @@ namespace ModSetting {
             return Saver.HasValue(modInfo.GetModId(), key);
         }
 
-        public static void RemoveUI(ModInfo info, string key,Action<bool> callback=null) {
-            AddAction(() => {
-                if (globalPanelUI.RemoveUI(info,key)) {
-                    if (ConfigManager.RemoveUI(info, key)&&mainMenuPanelUI.RemoveUI(info,key)) {
+        public static void RemoveUI(ModInfo modInfo, string key,Action<bool> callback=null) {
+            AddAction(modInfo,() => {
+                if (globalPanelUI.RemoveUI(modInfo,key)) {
+                    if (ConfigManager.RemoveUI(modInfo, key)&&mainMenuPanelUI.RemoveUI(modInfo,key)) {
                         callback?.Invoke(true);
                         return;
                     }
@@ -177,12 +217,13 @@ namespace ModSetting {
             });
         }
 
-        public static void RemoveMod(ModInfo info,Action<bool> callback=null) {
-            AddAction(() => {
-                bool result = globalPanelUI.RemoveTitle(info)&& mainMenuPanelUI.RemoveTitle(info) &&ConfigManager.RemoveMod(info);
+        public static void RemoveMod(ModInfo modInfo,Action<bool> callback=null) {
+            AddAction(modInfo,() => {
+                bool result = globalPanelUI.RemoveTitle(modInfo)&& mainMenuPanelUI.RemoveTitle(modInfo) &&ConfigManager.RemoveMod(modInfo);
                 callback?.Invoke(result);
             });
         }
+
 
         private void OnModWillBeDeactivated(ModInfo arg1, Duckov.Modding.ModBehaviour arg2) {
             if (globalPanelUI.HasTitle(arg1)) {

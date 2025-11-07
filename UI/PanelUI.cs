@@ -22,6 +22,7 @@ namespace ModSetting.UI {
         private KeyBindingUI keyBindEntryPrefab;
         private TitleUI titlePrefab;
         private InputUI inputPrefab;
+        private ButtonUI buttonPrefab;
         protected float titleHeight;
         private readonly Dictionary<string, TitleUI> titleUiDic = new Dictionary<string, TitleUI>();
         private KeyBindingManager keyBindingManager;
@@ -99,6 +100,7 @@ namespace ModSetting.UI {
                 .FirstOrDefault(item => item != null);
             CreateKeyBindPrefab(keybindingEntry);
             CreateTogglePrefab(keybindingEntry);
+            CreateButtonPrefab(keybindingEntry);
             DontDestroyOnLoad(dropDownPrefab);
             DontDestroyOnLoad(sliderPrefab);
             DontDestroyOnLoad(keyBindEntryPrefab);
@@ -139,6 +141,25 @@ namespace ModSetting.UI {
             }
         }
 
+        private void CreateButtonPrefab(UIKeybindingEntry keybindingEntry) {
+            if (keybindingEntry == null) return;
+            UIKeybindingEntry buttonClone = Instantiate(keybindingEntry);
+            if (buttonClone != null) {
+                TextMeshProUGUI label = buttonClone.GetInstanceField<TextMeshProUGUI>("label");
+                Button rebindButton = buttonClone.GetInstanceField<Button>("rebindButton");
+                Button clearButton = buttonClone.GetInstanceField<Button>("clearButton");
+                InputIndicator indicator = buttonClone.GetInstanceField<InputIndicator>("indicator");
+                TextMeshProUGUI text = indicator.GetInstanceField<TextMeshProUGUI>("text");
+                GameObject toggleCloneGameObject = buttonClone.gameObject;
+                DestroyImmediate(clearButton.image);
+                DestroyImmediate(indicator);
+                DestroyImmediate(clearButton);
+                DestroyImmediate(buttonClone);
+                buttonPrefab = toggleCloneGameObject.AddComponent<ButtonUI>();
+                buttonPrefab.Init(label, rebindButton, text, "button默认文本","按钮");
+                Debug.Log("成功创建buttonPrefab预制体");
+            }
+        }
         private void CreateKeyBindPrefab(UIKeybindingEntry keybindingEntry) {
             if (keybindingEntry == null) return;
             UIKeybindingEntry keybinding = Instantiate(keybindingEntry);
@@ -248,6 +269,15 @@ namespace ModSetting.UI {
             inputUI.Setup(inputConfig);
             inputUI.onValueChange += onValueChange;
             AddUnderTheTitle(modInfo, inputConfig.Key, inputUI.gameObject);
+            return true;
+        }
+
+        public bool AddButton(ModInfo modInfo,string key,string description, string buttonText,Action onClickButton) {
+            if (modContent == null || buttonPrefab == null) return false;
+            ButtonUI buttonUI = Instantiate(buttonPrefab, modContent.transform);
+            buttonUI.Setup(description, buttonText);
+            buttonUI.onClickButton += onClickButton;
+            AddUnderTheTitle(modInfo, key, buttonUI.gameObject);
             return true;
         }
         public bool RemoveUI(ModInfo modInfo, string key) {

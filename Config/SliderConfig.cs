@@ -36,10 +36,11 @@ namespace ModSetting.Config {
                 Debug.LogError($"类型不匹配:{value.GetType()},无法赋值给:{GetTypesString()}");
                 return;
             }
-            if ((float)value < SliderRange.x || (float)value > SliderRange.y) {
-                Debug.LogError("Slider不能超出范围:"+(float)value);   
+            float floatValue = Convert.ToSingle(value);
+            if (floatValue < SliderRange.x || floatValue > SliderRange.y) {
+                Debug.LogError("Slider不能超出范围:"+floatValue);   
             }
-            SetValue((float)value);
+            SetValue(floatValue);
         }
 
         public bool IsTypeMatch(Type type) => GetValidTypes().Contains(type);

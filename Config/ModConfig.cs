@@ -9,16 +9,23 @@ using UnityEngine;
 namespace ModSetting.Config {
     public class ModConfig {
         public ModInfo ModInfo { get; private set; }
-        private readonly Dictionary<string, IConfig> allConfigs = new Dictionary<string, IConfig>();
+        private readonly Dictionary<string, IConfig> allConfigs = new();
+        //添加操作对activeKey进行检查,删除操作对activeKey移除,注意一些没有config的key也会加入到activeKey中
+        private readonly HashSet<string> activeKey = new();
         public ModConfig(ModInfo modInfo) {
             ModInfo = modInfo;
         }
         public void AddConfig(IConfig config) {
+            if (HasKey(config.Key)) {
+                Debug.LogError("已经有此key无法添加,key:"+config.Key);
+                return;
+            }
             if (allConfigs.TryGetValue(config.Key,out IConfig oldConfig)) {
                 allConfigs[config.Key] = config;
             } else {
                 allConfigs.Add(config.Key,config);
             }
+            AddKey(config.Key);
         }
 
         public T GetValue<T>(string key) {
@@ -52,6 +59,16 @@ namespace ModSetting.Config {
                 configDatas.Add(config.GetConfigData());
             }
             return new ModConfigData(ModInfo.GetModId(),configDatas);
+        }
+
+        public void AddKey(string key) => activeKey.Add(key);
+
+        public bool HasKey(string key) => activeKey.Contains(key);
+        public bool RemoveKey(string key) => activeKey.Remove(key);
+
+        public bool Clear() {
+            activeKey.Clear();
+            return true;
         }
     }
 }
