@@ -52,9 +52,7 @@ namespace ModSetting.UI {
         }
 
         public void Init() {
-            // 创建标题文本
             CreateTitle();
-            //创建Image
             CreateImage();
         }
 
