@@ -4,6 +4,7 @@ using Duckov.Modding;
 using ModSetting.Config;
 using ModSetting.Extensions;
 using ModSetting.UI;
+using SodaCraft.Localizations;
 using UnityEngine;
 
 namespace ModSetting {
@@ -18,6 +19,8 @@ namespace ModSetting {
             Debug.Log("ModSetting:启用");
             MainMenu.OnMainMenuAwake += Init;
             ModManager.OnModWillBeDeactivated += OnModWillBeDeactivated;
+            LocalizationManager.OnSetLanguage += ModLocalizationManager.OnLanguageChanged;
+            ModLocalizationManager.Init();
             if(!isInit)Init();
             Saver.Load();
         }
@@ -26,11 +29,13 @@ namespace ModSetting {
             Debug.Log("ModSetting:禁用");
             MainMenu.OnMainMenuAwake -= Init;
             ModManager.OnModWillBeDeactivated -= OnModWillBeDeactivated;
+            LocalizationManager.OnSetLanguage -= ModLocalizationManager.OnLanguageChanged;
             isInit = false;
             actionQueue.Clear();
             Saver.Save();
             Saver.Clear();
             ConfigManager.Clear();
+            ModLocalizationManager.Clear();
         }
 
         private void Update() {

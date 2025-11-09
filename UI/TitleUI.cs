@@ -5,11 +5,7 @@ using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
 
-// todo 添加groupUI
-// 添加 Group 字典
-// private Dictionary<string, GroupUI> groupDic = new Dictionary<string, GroupUI>();
-// 添加全局 UI 映射（key -> GroupUI），用于快速查找
-// private Dictionary<string, GroupUI> uiToGroupMap = new Dictionary<string, GroupUI>();
+// todo 实现嵌套，UI应该持有config，UI销毁时应该移除对config的监听，防止内存泄露
 namespace ModSetting.UI {
     public class TitleUI : MonoBehaviour {
         [SerializeField] private TextMeshProUGUI label;
@@ -37,18 +33,6 @@ namespace ModSetting.UI {
             layoutGroup.childForceExpandWidth = false;
             layoutGroup.spacing = 200f;
             layoutGroup.padding = new RectOffset(10, 10, 10, 10);
-        }
-
-        private void Update() {
-            if (Input.GetKeyDown(KeyCode.LeftArrow)) {
-                HorizontalLayoutGroup layoutGroup = GetComponent<HorizontalLayoutGroup>();
-                layoutGroup.childAlignment--;
-            }
-
-            if (Input.GetKeyDown(KeyCode.RightArrow)) {
-                HorizontalLayoutGroup layoutGroup = GetComponent<HorizontalLayoutGroup>();
-                layoutGroup.childAlignment++;
-            }
         }
 
         public void Init() {

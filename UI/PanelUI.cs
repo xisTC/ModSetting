@@ -27,6 +27,7 @@ namespace ModSetting.UI {
         public float TitleHeight { get; protected set; }
         private readonly Dictionary<string, TitleUI> titleUiDic = new();
         private KeyBindingManager keyBindingManager;
+        private TextMeshProUGUI tabName;
         public bool IsInit { get; protected set; }
         public abstract void Init();
         protected void InitTab() {
@@ -74,15 +75,18 @@ namespace ModSetting.UI {
             tabButtons.Add(modTabButton);
             // 调用Setup更新UI
             optionsPanel.InvokeInstanceMethod("Setup");
-            TextMeshProUGUI tabName = modTabButton.GetComponentInChildren<TextMeshProUGUI>(true);
+            tabName = modTabButton.GetComponentInChildren<TextMeshProUGUI>(true);
             if (tabName != null) {
                 // 移除本地化组件, 保证文本设置正常
                 TextLocalizor localizor = modTabButton.GetComponentInChildren<TextLocalizor>(true);
                 if (localizor != null)
                     Destroy(localizor);
-                tabName.SetText("Mod设置");
+                string tabNameText = ModLocalizationManager.GetText(ModLocalizationManager.TAB_NAME);
+                tabName.text = tabNameText;
+                ModLocalizationManager.onLanguageChanged += OnLanguageChanged;
             }
         }
+
         #region 初始化预制件
 
         protected void InitPrefab() {
@@ -125,6 +129,7 @@ namespace ModSetting.UI {
                 Debug.Log("成功创建titlePrefab预制体");
             }
         }
+
         private void CreateGroupPrefab(OptionsUIEntry_Dropdown optionDropDown) {
             if (optionDropDown == null) return;
             OptionsUIEntry_Dropdown groupClone = Instantiate(optionDropDown);
@@ -362,6 +367,7 @@ namespace ModSetting.UI {
             tabButtons.Remove(modTabButton);
             OptionsPanel_TabButton firstTabButton = tabButtons.FirstOrDefault(tab=>tab!=null);
             if (firstTabButton!=null)optionsPanel.SetSelection(firstTabButton);
+            ModLocalizationManager.onLanguageChanged -= OnLanguageChanged;
             DestroySafely(modTabButton);
             DestroySafely(modContent);
             DestroySafely(dropDownPrefab);
@@ -391,6 +397,10 @@ namespace ModSetting.UI {
             if (component != null) {
                 DestroySafely(component.gameObject);
             }
+        }
+        
+        private void OnLanguageChanged(SystemLanguage obj) {
+            tabName.text =  ModLocalizationManager.GetText(ModLocalizationManager.TAB_NAME);
         }
     }
 }
