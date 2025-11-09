@@ -55,6 +55,10 @@ public static class ModSettingAPI {
     /// <returns>是否成功初始化</returns>
     public static bool Init(ModInfo modInfo) {
         if (IsInit) return true;
+        if (modInfo.name == MOD_NAME) {
+            Debug.LogError("初始化失败，不能使用ModSetting的info进行初始化");
+            return false;
+        }
         ModSettingAPI.modInfo = modInfo;
         modBehaviour = FindTypeInAssemblies(TYPE_NAME);
         if (modBehaviour == null) return false;

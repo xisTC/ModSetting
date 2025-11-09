@@ -12,7 +12,8 @@ namespace ModSetting {
         private static GlobalPanelUI globalPanelUI;
         private static MainMenuPanelUI mainMenuPanelUI;
         private static readonly Queue<Action> actionQueue = new Queue<Action>();
-        public static float Version= 0.2f;
+        public static float Version= 0.3f;
+        private const string MOD_NAME = "ModSetting";
         private void OnEnable() {
             Debug.Log("ModSetting:启用");
             MainMenu.OnMainMenuAwake += Init;
@@ -60,6 +61,10 @@ namespace ModSetting {
         }
 
         private static void AddAction(ModInfo modInfo,Action addConfigAction) {
+            if (modInfo.name == MOD_NAME) {
+                Debug.LogError("不能使用ModSetting信息");
+                return;
+            }
             if (isInit&&globalPanelUI.IsInit && mainMenuPanelUI.IsInit) {
                 addConfigAction?.Invoke();
             } else {
