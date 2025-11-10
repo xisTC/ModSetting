@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using Duckov.Modding;
 using ModSetting.Config;
 using TMPro;
@@ -10,7 +11,6 @@ namespace ModSetting.UI {
     public class GroupUI : MonoBehaviour {
         [SerializeField]private TextMeshProUGUI label;
         private float height=50f;
-        private GameObject endGameObject;
         private Dictionary<string, GameObject> settingDic = new Dictionary<string, GameObject>();
         private bool lastActive;
         private ModInfo modInfo;
@@ -40,23 +40,18 @@ namespace ModSetting.UI {
             
         }
         public void Add(string key,GameObject go) {
+            GameObject lastGo = GetEndGameObject();
             if (!settingDic.TryAdd(key, go)) {
                 Debug.LogError("已经有此key的UI,key:"+key);
                 return;
             }
-            Transform lastTransform = endGameObject ==null ? transform: endGameObject.transform;
-            bool active =endGameObject != null && endGameObject.activeSelf ;
+            Transform lastTransform = lastGo == null ? transform : lastGo.transform;
             int titleIndex = lastTransform.GetSiblingIndex();
             go.transform.SetSiblingIndex(titleIndex+1);
-            go.SetActive(active);
-            endGameObject = go;
+            go.SetActive( lastGo != null && lastGo.activeSelf);
         }
         public bool RemoveUI(string key) {
             if (settingDic.TryGetValue(key,out var uiGameObject)) {
-                if (endGameObject == uiGameObject) {
-                    Transform parent = endGameObject.transform.parent;
-                    endGameObject = parent.GetChild(parent.childCount - 1).gameObject;
-                }
                 Destroy(uiGameObject);
                 return settingDic.Remove(key);
             }
@@ -70,13 +65,20 @@ namespace ModSetting.UI {
             settingDic.Clear();
         }
 
+        public GameObject GetEndGameObject() {
+            return settingDic.Values
+                .OrderByDescending(gobject => gobject.transform.GetSiblingIndex())
+                .FirstOrDefault(last => last != null);
+        }
+
+        public bool Contains(GameObject go) => settingDic.Values.Contains(go);
         public void SetActive(bool active) {
             if (active) {
                 foreach (GameObject ui in settingDic.Values) {
                     ui.SetActive(lastActive);
                 }
             } else {
-                lastActive = endGameObject.activeSelf;
+                lastActive = settingDic.Values.First().activeSelf;
                 foreach (GameObject ui in settingDic.Values) {
                     ui.SetActive(false);
                 }
@@ -96,8 +98,9 @@ namespace ModSetting.UI {
         }
 
         private void OnClickButton() {
-            if(endGameObject==null)return;
-            bool activeSelf = endGameObject.activeSelf;
+            GameObject firstObject = settingDic.Values.FirstOrDefault(item=>item!=null);
+            if (firstObject == null) return;
+            bool activeSelf = firstObject.activeSelf;
             foreach (GameObject ui in settingDic.Values) {
                 ui.SetActive(!activeSelf);
             }

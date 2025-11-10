@@ -126,6 +126,7 @@ namespace ModSetting.UI {
                 DestroyImmediate(titleClone);
                 titlePrefab = titleCloneGameObject.AddComponent<TitleUI>();
                 titlePrefab.Init();
+                titlePrefab.name = "标题";
                 Debug.Log("成功创建titlePrefab预制体");
             }
         }
@@ -139,6 +140,7 @@ namespace ModSetting.UI {
                 DestroyImmediate(groupClone);
                 groupPrefab = groupCloneGameObject.AddComponent<GroupUI>();
                 groupPrefab.Init();
+                groupPrefab.name = "分组";
                 Debug.Log("成功创建groupPrefab预制体");
             }
         }
@@ -158,6 +160,7 @@ namespace ModSetting.UI {
                 DestroyImmediate(toggleClone);
                 togglePrefab = toggleCloneGameObject.AddComponent<ToggleUI>();
                 togglePrefab.Init(label, rebindButton, text, "toggle默认文本");
+                togglePrefab.name = "开关";
                 Debug.Log("成功创建togglePrefab预制体");
             }
         }
@@ -178,6 +181,7 @@ namespace ModSetting.UI {
                 DestroyImmediate(buttonClone);
                 buttonPrefab = toggleCloneGameObject.AddComponent<ButtonUI>();
                 buttonPrefab.Init(label, rebindButton, text, "button默认文本","按钮");
+                buttonPrefab.name = "按钮";
                 Debug.Log("成功创建buttonPrefab预制体");
             }
         }
@@ -195,6 +199,7 @@ namespace ModSetting.UI {
                 DestroyImmediate(keybinding);
                 keyBindEntryPrefab = keybindingGameObject.AddComponent<KeyBindingUI>();
                 keyBindEntryPrefab.Init(label, rebindButton,clearButton,text, "按键绑定默认文本", KeyCode.None);
+                keyBindEntryPrefab.name = "按键绑定";
                 Debug.Log("成功创建keyBindingPrefab预制体");
             }
         }
@@ -211,6 +216,7 @@ namespace ModSetting.UI {
                 Destroy(slider.gameObject);
                 inputPrefab = sliderGameObject.AddComponent<InputUI>();
                 inputPrefab.Init(label,inputField,"默认输入文本","默认值");
+                inputPrefab.name = "输入框";
             }
         }
 
@@ -225,6 +231,7 @@ namespace ModSetting.UI {
                 DestroyImmediate(entrySlider);
                 sliderPrefab = sliderGameObject.AddComponent<SliderUI>();
                 sliderPrefab.Init(label, slider, inputField, "slider默认文本", 0, 0, 100);
+                sliderPrefab.name = "滑块";
                 Debug.Log("成功创建slider预制体");
             }
         }
@@ -239,6 +246,7 @@ namespace ModSetting.UI {
                 dropDownPrefab = dropDownGameObject.AddComponent<DropDownUI>();
                 dropDownPrefab.Init(label, dropdown,
                     "默认文本", new List<string>() { "选项1", "选项2", "选项3", "选项4" }, "选项2");
+                dropDownPrefab.name ="下拉列表";
                 Debug.Log("成功创建下拉列表预制体");
             }
         }
@@ -250,6 +258,7 @@ namespace ModSetting.UI {
             Action<string> onValueChange = null) {
             if (modContent == null || dropDownPrefab == null) return false;
             DropDownUI dropDownUI = Instantiate(dropDownPrefab, modContent.transform);
+            dropDownUI.name += dropDownConfig.Key;
             dropDownUI.Setup(dropDownConfig);
             dropDownUI.onValueChange += onValueChange;
             AddUnderTheTitle(modInfo, dropDownConfig.Key, dropDownUI.gameObject);
@@ -259,6 +268,7 @@ namespace ModSetting.UI {
         public bool AddSlider(ModInfo modInfo, SliderConfig sliderConfig, Action<float> onValueChange = null) {
             if (modContent == null || sliderPrefab == null) return false;
             SliderUI sliderUI = Instantiate(sliderPrefab, modContent.transform);
+            sliderUI.name += sliderConfig.Key;
             sliderUI.Setup(sliderConfig);
             sliderUI.onValueChange += onValueChange;
             AddUnderTheTitle(modInfo, sliderConfig.Key, sliderUI.gameObject);
@@ -268,6 +278,7 @@ namespace ModSetting.UI {
         public bool AddToggle(ModInfo modInfo, ToggleConfig toggleConfig, Action<bool> onValueChange = null) {
             if (modContent == null || togglePrefab == null) return false;
             ToggleUI toggleUI = Instantiate(togglePrefab, modContent.transform);
+            toggleUI.name += toggleConfig.Key;
             toggleUI.Setup(toggleConfig);
             toggleUI.onValueChange += onValueChange;
             AddUnderTheTitle(modInfo, toggleConfig.Key, toggleUI.gameObject);
@@ -278,6 +289,7 @@ namespace ModSetting.UI {
             Action<KeyCode> onValueChange = null) {
             if (modContent == null || keyBindEntryPrefab == null) return false;
             KeyBindingUI keyBindingUI = Instantiate(keyBindEntryPrefab, modContent.transform);
+            keyBindingUI.name += keyBindingConfig.Key;
             keyBindingUI.Setup(keyBindingConfig, keyBindingManager);
             keyBindingManager.AddModKeyBinding(modInfo, keyBindingConfig.Key, keyBindingUI);
             keyBindingUI.onValueChange += onValueChange;
@@ -287,6 +299,7 @@ namespace ModSetting.UI {
         public bool AddInput(ModInfo modInfo, InputConfig inputConfig, Action<string> onValueChange) {
             if (modContent == null || inputPrefab == null) return false;
             InputUI inputUI = Instantiate(inputPrefab, modContent.transform);
+            inputUI.name += inputConfig.Key;
             inputUI.Setup(inputConfig);
             inputUI.onValueChange += onValueChange;
             AddUnderTheTitle(modInfo, inputConfig.Key, inputUI.gameObject);
@@ -296,6 +309,7 @@ namespace ModSetting.UI {
         public bool AddButton(ModInfo modInfo,string key,string description, string buttonText,Action onClickButton) {
             if (modContent == null || buttonPrefab == null) return false;
             ButtonUI buttonUI = Instantiate(buttonPrefab, modContent.transform);
+            buttonUI.name += key;
             buttonUI.Setup(description, buttonText);
             buttonUI.onClickButton += onClickButton;
             AddUnderTheTitle(modInfo, key, buttonUI.gameObject);
@@ -312,6 +326,7 @@ namespace ModSetting.UI {
                 return false;
             }
             GroupUI groupUI = Instantiate(groupPrefab, modContent.transform);
+            groupUI.name += key;
             groupUI.Setup(modInfo,description,keys,height,open);
             titleUI.AddGroup(key,groupUI,keys,top);
             return true;
@@ -349,6 +364,7 @@ namespace ModSetting.UI {
             if (titleUiDic.TryGetValue(modInfo.GetModId(), out var title)) return title;
             if (modContent == null || titlePrefab == null) return null;
             TitleUI titleUI = Instantiate(titlePrefab, modContent.transform);
+            titleUI.name += modInfo.name;
             titleUI.Setup(modInfo.preview, modInfo.displayName, TitleHeight);
             titleUiDic.Add(modInfo.GetModId(), titleUI);
             return titleUI;

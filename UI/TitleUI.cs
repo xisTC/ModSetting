@@ -78,29 +78,27 @@ namespace ModSetting.UI {
         }
 
         public void Add(string key, GameObject go) {
+            GameObject firstGo = settingDic.Values.FirstOrDefault();
             if (!settingDic.TryAdd(key, go)) {
                 Debug.LogError("已经有此key的UI,key:" + key);
                 return;
             }
-
             Transform lastTransform = endGameObject == null ? transform : endGameObject.transform;
-            bool active = endGameObject != null && endGameObject.activeSelf;
             int titleIndex = lastTransform.GetSiblingIndex();
             go.transform.SetSiblingIndex(titleIndex + 1);
-            go.SetActive(active);
+            go.SetActive(firstGo!=null&& firstGo.activeSelf);
             endGameObject = go;
         }
 
         private void AddTop(string key, GameObject go) {
+            GameObject firstGo = settingDic.Values.FirstOrDefault();
             if (!settingDic.TryAdd(key, go)) {
                 Debug.LogError("已经有此key的UI,key:" + key);
                 return;
             }
-
-            bool active = endGameObject != null && endGameObject.activeSelf;
             int titleIndex = transform.GetSiblingIndex();
             go.transform.SetSiblingIndex(titleIndex + 1);
-            go.SetActive(active);
+            go.SetActive(firstGo!=null&& firstGo.activeSelf);
             endGameObject = endGameObject.transform.GetSiblingIndex() > go.transform.GetSiblingIndex()
                 ? endGameObject
                 : go;
@@ -120,10 +118,6 @@ namespace ModSetting.UI {
         }
         public bool RemoveUI(string key) {
             if (settingDic.Remove(key, out var uiGameObject)) {
-                if (endGameObject == uiGameObject) {
-                    endGameObject = settingDic.Values.OrderByDescending(value => value.transform.GetSiblingIndex())
-                        .FirstOrDefault(go => go != null);
-                }
                 if (groupDic.Remove(key,out var groupUI)) {
                     var keysToRemove = uiToGroupMap.
                         Where(kv => kv.Value == groupUI).
@@ -131,14 +125,27 @@ namespace ModSetting.UI {
                     foreach (var k in keysToRemove) {
                         uiToGroupMap.Remove(k);
                     }
+                    if (groupUI.Contains(endGameObject)) {
+                        groupUI.Clear();
+                        endGameObject = null;
+                        UpdateEndGameObject();
+                    }
+                } else {
+                    if (endGameObject == uiGameObject) {
+                        endGameObject = null;
+                        UpdateEndGameObject();
+                    }
                 }
                 Destroy(uiGameObject);
                 return true;
             }
             if (uiToGroupMap.Remove(key, out var ui)) {
+                if (endGameObject == ui.gameObject) {
+                    endGameObject = null;
+                    UpdateEndGameObject();
+                }
                 return ui.RemoveUI(key);
             }
-
             return false;
         }
 
@@ -166,17 +173,44 @@ namespace ModSetting.UI {
             } else {
                 Add(key, groupUI.gameObject);
             }
-
+            //移除尾部插入时的索引变化问题
+            foreach (string otherKey in keys) {
+                if (settingDic.TryGetValue(otherKey, out var go)) {
+                    go.transform.SetSiblingIndex(transform.parent.childCount-1);
+                    uiToGroupMap.Add(otherKey, groupUI);
+                }
+            }
             foreach (string otherKey in keys) {
                 if (settingDic.Remove(otherKey, out var go)) {
                     groupUI.Add(otherKey, go);
-                    uiToGroupMap.Add(otherKey, groupUI);
                 } else {
                     Debug.LogError("title中没有此key,key:" + otherKey);
                 }
             }
+            //group的add会改变尾部物体，需要更新
+            GameObject groupLastGo = groupUI.GetEndGameObject();
+            endGameObject = endGameObject.transform.GetSiblingIndex() >
+                            groupLastGo.transform.GetSiblingIndex()
+                ? endGameObject
+                : groupLastGo;
         }
 
+        private void UpdateEndGameObject() {
+            List<GameObject> candidates = new();
+            GameObject lastGroupGo = groupDic.Values
+                .OrderByDescending(groupUI => groupUI.transform.GetSiblingIndex())
+                .FirstOrDefault(ui => ui != null)?
+                .GetEndGameObject();
+            if(lastGroupGo!=null)candidates.Add(lastGroupGo);
+            GameObject lastUI = settingDic.Values
+                .OrderByDescending(go=>go.transform.GetSiblingIndex())
+                .FirstOrDefault(item=>item!=null);
+            if(lastUI!=null)candidates.Add(lastUI);
+            if(endGameObject!=null)candidates.Add(endGameObject);
+            endGameObject = candidates
+                .OrderByDescending(go => go.transform.GetSiblingIndex())
+                .FirstOrDefault(item => item != null);
+        }
         public bool HasNest(List<string> keys) => keys.Intersect(groupDic.Keys).Any();
     }
 }

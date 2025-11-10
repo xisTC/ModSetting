@@ -14,7 +14,6 @@ namespace ModSetting.UI {
                 .FirstOrDefault(panel => panel.gameObject.scene.name == "MainMenu");
             if (!IsInit) {
                 save = new GameObject("save");
-                save.transform.localScale=Vector3.one;
                 DontDestroyOnLoad(save);
                 TitleHeight = 100f;
                 InitTab();
@@ -39,8 +38,7 @@ namespace ModSetting.UI {
                 Debug.Log("找不到不为null的tab");
                 return;
             }
-
-            modTabButton.transform.SetParent(tabButton.transform.parent);
+            modTabButton.transform.SetParent(tabButton.transform.parent,false);
             // 添加到tabButtons列表
             tabButtons.Add(modTabButton);
             // 调用Setup更新UI
@@ -50,8 +48,7 @@ namespace ModSetting.UI {
                 Debug.LogError("无法反射获取tabButton的tab成员");
                 return;
             }
-
-            modContent.transform.SetParent(tab.transform.parent);
+            modContent.transform.SetParent(tab.transform.parent,false);
         }
         protected override void ChildOnEnable() {
             SceneLoader.onStartedLoadingScene += OnStartedLoadingScene;
@@ -64,8 +61,8 @@ namespace ModSetting.UI {
 
         private void OnStartedLoadingScene(SceneLoadingContext sceneLoadingContext) {
             if (SceneManager.GetActiveScene().name == "MainMenu") {
-                modContent.transform.SetParent(save.transform);
-                modTabButton.transform.SetParent(save.transform);
+                modContent.transform.SetParent(save.transform,false);
+                modTabButton.transform.SetParent(save.transform,false);
                 Debug.Log("保存组件");
             }
         }
