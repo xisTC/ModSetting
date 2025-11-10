@@ -213,7 +213,7 @@ namespace ModSetting.UI {
                 TMP_InputField inputField = sliderClone.GetInstanceField<TMP_InputField>("valueField");
                 GameObject sliderGameObject = sliderClone.gameObject;
                 DestroyImmediate(sliderClone);
-                Destroy(slider.gameObject);
+                DestroyImmediate(slider.gameObject);
                 inputPrefab = sliderGameObject.AddComponent<InputUI>();
                 inputPrefab.Init(label,inputField,"默认输入文本","默认值");
                 inputPrefab.name = "输入框";

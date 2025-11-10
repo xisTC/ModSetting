@@ -13,11 +13,6 @@ namespace ModSetting.UI {
         private string description;
         private int decimalPlaces=1;
         public event Action<float> onValueChange; 
-        private void Awake() {
-            if(slider!=null) slider.onValueChanged.AddListener(Slider_OnValueChanged);
-            if(valueField!=null)valueField.onEndEdit.AddListener(InputField_OnEndEdit);
-        }
-
         public void Init(TextMeshProUGUI label,Slider slider,TMP_InputField valueField,
             string defaultDescription,float defaultValue,float defaultMinValue,float defaultMaxValue,int decimalPlaces=1) {
             this.label = label;
@@ -40,6 +35,8 @@ namespace ModSetting.UI {
             valueField.characterLimit = sliderConfig.CharacterLimit;
             sliderConfig.OnValueChange +=SliderConfig_OnValueChange ;
             onValueChange += sliderConfig.SetValue;
+            slider.onValueChanged.AddListener(Slider_OnValueChanged);
+            valueField.onEndEdit.AddListener(InputField_OnEndEdit);
             UpdateValue();
         }
 
