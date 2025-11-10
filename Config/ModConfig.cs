@@ -61,7 +61,13 @@ namespace ModSetting.Config {
             return new ModConfigData(ModInfo.GetModId(),configDatas);
         }
 
-        public void AddKey(string key) => activeKey.Add(key);
+        public void AddKey(string key) {
+            if (HasKey(key)) {
+                Debug.LogError("已经存在此key,key:"+key);
+                return;
+            }
+            activeKey.Add(key);
+        }
 
         public bool HasKey(string key) => activeKey.Contains(key);
         public bool RemoveKey(string key) => activeKey.Remove(key);

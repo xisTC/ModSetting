@@ -101,6 +101,9 @@ namespace ModSetting.UI {
             int titleIndex = transform.GetSiblingIndex();
             go.transform.SetSiblingIndex(titleIndex + 1);
             go.SetActive(active);
+            endGameObject = endGameObject.transform.GetSiblingIndex() > go.transform.GetSiblingIndex()
+                ? endGameObject
+                : go;
         }
 
         private void OnClickButton() {
@@ -115,20 +118,25 @@ namespace ModSetting.UI {
                 groupUI.SetActive(!activeSelf);
             }
         }
-
         public bool RemoveUI(string key) {
-            if (settingDic.TryGetValue(key, out var uiGameObject)) {
+            if (settingDic.Remove(key, out var uiGameObject)) {
                 if (endGameObject == uiGameObject) {
-                    Transform parent = endGameObject.transform.parent;
-                    endGameObject = parent.GetChild(parent.childCount - 1).gameObject;
+                    endGameObject = settingDic.Values.OrderByDescending(value => value.transform.GetSiblingIndex())
+                        .FirstOrDefault(go => go != null);
                 }
-
+                if (groupDic.Remove(key,out var groupUI)) {
+                    var keysToRemove = uiToGroupMap.
+                        Where(kv => kv.Value == groupUI).
+                        Select(kv => kv.Key).ToList();
+                    foreach (var k in keysToRemove) {
+                        uiToGroupMap.Remove(k);
+                    }
+                }
                 Destroy(uiGameObject);
-                return settingDic.Remove(key);
+                return true;
             }
-
-            if (uiToGroupMap.TryGetValue(key, out var groupUI)) {
-                return groupUI.RemoveUI(key);
+            if (uiToGroupMap.Remove(key, out var ui)) {
+                return ui.RemoveUI(key);
             }
 
             return false;
@@ -163,8 +171,6 @@ namespace ModSetting.UI {
                 if (settingDic.Remove(otherKey, out var go)) {
                     groupUI.Add(otherKey, go);
                     uiToGroupMap.Add(otherKey, groupUI);
-                    Transform parent = transform.parent;
-                    if (parent.childCount > 0) endGameObject = parent.GetChild(parent.childCount - 1).gameObject;
                 } else {
                     Debug.LogError("title中没有此key,key:" + otherKey);
                 }

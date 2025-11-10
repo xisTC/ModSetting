@@ -312,7 +312,7 @@ namespace ModSetting.UI {
                 return false;
             }
             GroupUI groupUI = Instantiate(groupPrefab, modContent.transform);
-            groupUI.Setup(description,keys,height,open);
+            groupUI.Setup(modInfo,description,keys,height,open);
             titleUI.AddGroup(key,groupUI,keys,top);
             return true;
         }

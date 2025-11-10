@@ -71,7 +71,11 @@ namespace ModSetting {
                 return;
             }
             if (isInit&&globalPanelUI.IsInit && mainMenuPanelUI.IsInit) {
-                addConfigAction?.Invoke();
+                try {
+                    addConfigAction?.Invoke();
+                } catch (Exception e) {
+                    UnityEngine.Debug.LogError("添加UI异常:"+e.StackTrace);
+                }
             } else {
                 actionQueue.Enqueue(addConfigAction);
                 Debug.Log($"{modInfo.name}加入队列，等待mod菜单初始化。当前队列长度: {actionQueue.Count}");
@@ -194,6 +198,10 @@ namespace ModSetting {
         }
         public static void AddGroup(ModInfo modInfo, string key, string description,
             List<string> keys, float scale=0.7f,bool topInsert=false,bool open=false) {
+            if (keys == null || keys.Count == 0) {
+                Debug.LogError("group的keys不能为空");
+                return;
+            }
             if (keys.Contains(key)) keys.Remove(key);
             AddAction(modInfo,() => {
                 if (ConfigManager.HasKey(modInfo, key)) {

@@ -1,5 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
+using Duckov.Modding;
+using ModSetting.Config;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
@@ -11,6 +13,7 @@ namespace ModSetting.UI {
         private GameObject endGameObject;
         private Dictionary<string, GameObject> settingDic = new Dictionary<string, GameObject>();
         private bool lastActive;
+        private ModInfo modInfo;
         private void Start() {
             HorizontalLayoutGroup layoutGroup = GetComponent<HorizontalLayoutGroup>();
             if(layoutGroup==null)return;
@@ -23,7 +26,8 @@ namespace ModSetting.UI {
         public void Init() {
             CreateTitle();
         }
-        public void Setup(string description,List<string> keys,float height,bool open) {
+        public void Setup(ModInfo modInfo,string description,List<string> keys,float height,bool open) {
+            this.modInfo = modInfo;
             this.height = height;
             lastActive= open;
             label.text = description;
@@ -59,8 +63,9 @@ namespace ModSetting.UI {
             return false;
         }
         public void Clear() {
-            foreach (GameObject uiGameObject in settingDic.Values) {
-                Destroy(uiGameObject);
+            foreach (var (key, value) in settingDic) {
+                ConfigManager.RemoveUI(modInfo, key);
+                Destroy(value);
             }
             settingDic.Clear();
         }

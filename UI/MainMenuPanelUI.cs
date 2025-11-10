@@ -14,6 +14,7 @@ namespace ModSetting.UI {
                 .FirstOrDefault(panel => panel.gameObject.scene.name == "MainMenu");
             if (!IsInit) {
                 save = new GameObject("save");
+                save.transform.localScale=Vector3.one;
                 DontDestroyOnLoad(save);
                 TitleHeight = 100f;
                 InitTab();
