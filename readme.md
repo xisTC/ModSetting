@@ -21,7 +21,4 @@
 **坏处**：mod和ModSetting之间强依赖，必须先启用ModSetting才能启用mod，也就是mod必须放在ModSetting下面  
 **应用场景**：使用了ModSetting的保存系统，有极高性能要求
 3. 注意:  
-已知的bug：如果使用引用dll的mod的前置mod未启用，例如:HarmonyLib、引用dll使用的ModSetting。这个时候开启游戏，在mod列表  
-启用前置mod未启用的mod(且此mod是引用的前置mod的dll)，将会报错，很正常，因为前置mod未启用，程序集中找不到mod中使用的类型，  
-此时如果启用其他任何mod，会发现勾选不上mod，控制台报错，但是实际上mod其实已经启用了。关闭mod列表  
-再打开mod列表就会发现mod已经勾上了，并且mod的功能也能正常使用。此bug会让用户认为你的mod导致其他所有mod都无法勾选上。
+已知的bug：如果使用引用dll的mod的前置mod未启用，例如:HarmonyLib、引用dll使用的ModSetting。这个时候开启游戏，在mod列表启用前置mod未启用的mod(且此mod是引用的前置mod的dll)，将会报错，很正常，因为前置mod未启用，程序集中找不到mod中使用的类型，此时如果启用其他任何mod，会发现勾选不上mod，控制台报错，但是实际上mod其实已经启用了。关闭mod列表再打开mod列表就会发现mod已经勾上了，并且mod的功能也能正常使用。此bug会让用户认为你的mod导致其他所有mod都无法勾选上。
