@@ -12,7 +12,6 @@ namespace ModSetting.UI {
         [SerializeField] private Image icon;
         private Texture2D preview;
         private float height = 50f;
-        private readonly float textWidth = 300f;
         private string description;
         private GameObject endGameObject;
 
@@ -52,8 +51,6 @@ namespace ModSetting.UI {
                     new Vector2(0.5f, 0.5f));
             RectTransform iconTransform = icon.GetComponent<RectTransform>();
             iconTransform.sizeDelta = new Vector2(height, height);
-            RectTransform labelTransform = label.GetComponent<RectTransform>();
-            labelTransform.sizeDelta = new Vector2(textWidth, height);
             Image bg = GetComponent<Image>();
             Button button = gameObject.AddComponent<Button>();
             button.image = bg;
@@ -66,14 +63,17 @@ namespace ModSetting.UI {
             label = titleTextObject.AddComponent<TextMeshProUGUI>();
             label.alignment = TextAlignmentOptions.Left;
             label.fontStyle = FontStyles.Bold;
-            label.autoSizeTextContainer = true;
         }
 
-        public void Setup(Texture2D texture2D, string description, float height) {
+        public void Setup(Texture2D texture2D, string description,float fontSize,float imageLength) {
             this.description = description;
             preview = texture2D;
-            this.height = height;
+            label.fontSize = fontSize;
             label.text = description;
+            Vector2 preferredSize = label.GetPreferredValues(description);
+            RectTransform rectTransform = label.GetComponent<RectTransform>();
+            rectTransform.sizeDelta = preferredSize;
+            height = imageLength;
             SetImageAndButton();
         }
 

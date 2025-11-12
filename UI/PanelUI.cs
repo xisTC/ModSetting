@@ -24,10 +24,11 @@ namespace ModSetting.UI {
         private InputUI inputPrefab;
         private ButtonUI buttonPrefab;
         private GroupUI groupPrefab;
-        public float TitleHeight { get; protected set; }
         private readonly Dictionary<string, TitleUI> titleUiDic = new();
         private KeyBindingManager keyBindingManager;
         private TextMeshProUGUI tabName;
+        public float TitleFontSize { get; protected set; } = 36f;
+        public float ImageLength { get; protected set; } = 50f;
         public bool IsInit { get; protected set; }
         public abstract void Init();
         protected void InitTab() {
@@ -316,7 +317,7 @@ namespace ModSetting.UI {
             return true;
         }
 
-        public bool AddGroup(ModInfo modInfo, string key, string description, List<string> keys, float height,bool top,bool open) {
+        public bool AddGroup(ModInfo modInfo, string key, string description, List<string> keys, float scale,bool top,bool open) {
             if (modContent == null || groupPrefab == null) return false;
             if (keys.Contains(key)) return false;
             TitleUI titleUI = AddOrGetTitle(modInfo);
@@ -327,7 +328,7 @@ namespace ModSetting.UI {
             }
             GroupUI groupUI = Instantiate(groupPrefab, modContent.transform);
             groupUI.name += key;
-            groupUI.Setup(modInfo,description,keys,height,open);
+            groupUI.Setup(modInfo,description,keys,scale*ImageLength,open);
             titleUI.AddGroup(key,groupUI,keys,top);
             return true;
         }
@@ -365,7 +366,7 @@ namespace ModSetting.UI {
             if (modContent == null || titlePrefab == null) return null;
             TitleUI titleUI = Instantiate(titlePrefab, modContent.transform);
             titleUI.name += modInfo.name;
-            titleUI.Setup(modInfo.preview, modInfo.displayName, TitleHeight);
+            titleUI.Setup(modInfo.preview, modInfo.displayName, TitleFontSize,ImageLength);
             titleUiDic.Add(modInfo.GetModId(), titleUI);
             return titleUI;
         }

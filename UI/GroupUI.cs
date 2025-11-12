@@ -10,7 +10,6 @@ using UnityEngine.UI;
 namespace ModSetting.UI {
     public class GroupUI : MonoBehaviour {
         [SerializeField]private TextMeshProUGUI label;
-        private float height=50f;
         private Dictionary<string, GameObject> settingDic = new Dictionary<string, GameObject>();
         private bool lastActive;
         private ModInfo modInfo;
@@ -28,15 +27,14 @@ namespace ModSetting.UI {
         }
         public void Setup(ModInfo modInfo,string description,List<string> keys,float height,bool open) {
             this.modInfo = modInfo;
-            this.height = height;
             lastActive= open;
             label.text = description;
+            RectTransform rectTransform = label.GetComponent<RectTransform>();
+            rectTransform.sizeDelta = new Vector2(label.GetPreferredValues(description).x, height);
             Image bg = GetComponent<Image>();
             Button button = gameObject.AddComponent<Button>();
             button.image = bg;
             button.onClick.AddListener(OnClickButton);
-            RectTransform labelTransform = label.GetComponent<RectTransform>();
-            labelTransform.sizeDelta = new Vector2(200f,height);
             
         }
         public void Add(string key,GameObject go) {
@@ -94,7 +92,7 @@ namespace ModSetting.UI {
             label = titleTextObject.AddComponent<TextMeshProUGUI>();
             label.alignment = TextAlignmentOptions.Left;
             label.fontStyle = FontStyles.Bold;
-            // label.enableAutoSizing = true;
+            label.autoSizeTextContainer = true;
         }
 
         private void OnClickButton() {

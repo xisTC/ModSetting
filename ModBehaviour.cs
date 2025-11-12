@@ -13,10 +13,13 @@ namespace ModSetting {
         private static GlobalPanelUI globalPanelUI;
         private static MainMenuPanelUI mainMenuPanelUI;
         private static readonly Queue<Action> actionQueue = new Queue<Action>();
-        public static float Version= 0.3f;
+        public static float Version= 0.4f;
+        public static readonly Version VERSION = new Version(0, 4, 0);
         private const string MOD_NAME = "ModSetting";
+        public static bool Enable { get; private set; }
         private void OnEnable() {
             Debug.Log("ModSetting:启用");
+            Enable = true;
             MainMenu.OnMainMenuAwake += Init;
             ModManager.OnModWillBeDeactivated += OnModWillBeDeactivated;
             LocalizationManager.OnSetLanguage += ModLocalizationManager.OnLanguageChanged;
@@ -27,6 +30,7 @@ namespace ModSetting {
 
         private void OnDisable() {
             Debug.Log("ModSetting:禁用");
+            Enable = false;
             MainMenu.OnMainMenuAwake -= Init;
             ModManager.OnModWillBeDeactivated -= OnModWillBeDeactivated;
             LocalizationManager.OnSetLanguage -= ModLocalizationManager.OnLanguageChanged;
@@ -73,8 +77,9 @@ namespace ModSetting {
             if (isInit&&globalPanelUI.IsInit && mainMenuPanelUI.IsInit) {
                 try {
                     addConfigAction?.Invoke();
+                    // Debug.Log($"{modInfo.name}执行添加UI");
                 } catch (Exception e) {
-                    UnityEngine.Debug.LogError("添加UI异常:"+e.StackTrace);
+                    Debug.LogError("添加UI异常:"+e.StackTrace);
                 }
             } else {
                 actionQueue.Enqueue(addConfigAction);
@@ -216,8 +221,8 @@ namespace ModSetting {
                 }
                 ConfigManager.AddKey(modInfo,key);
                 scale = Math.Clamp(scale, 0f, 0.9f);
-                globalPanelUI.AddGroup(modInfo,key, description, keys, scale*globalPanelUI.TitleHeight,topInsert, open);
-                mainMenuPanelUI.AddGroup(modInfo,key,description,keys, scale*mainMenuPanelUI.TitleHeight,topInsert, open);
+                globalPanelUI.AddGroup(modInfo,key, description, keys, scale,topInsert, open);
+                mainMenuPanelUI.AddGroup(modInfo,key,description,keys, scale,topInsert, open);
             });
         }
         public static void GetValue<T>(ModInfo modInfo, string key,Action<T> callback=null) {

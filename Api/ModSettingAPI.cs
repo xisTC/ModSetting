@@ -4,6 +4,7 @@ using System.Linq;
 using System.Reflection;
 using Duckov.Modding;
 using UnityEngine;
+using Debug = UnityEngine.Debug;
 
 public static class ModSettingAPI {
     private const string ADD_DROP_DOWN_LIST = "AddDropDownList";
@@ -20,7 +21,8 @@ public static class ModSettingAPI {
     private const string ADD_KEYBINDING_WITH_DEFAULT = "AddKeybindingWithDefault";
     private const string ADD_BUTTON = "AddButton";
     private const string ADD_GROUP = "AddGroup";
-    private static float Version = 0.3f;
+    private static float Version = 0.4f;
+    private static readonly Version VERSION = new Version(0, 4, 0);
     public const string MOD_NAME = "ModSetting";
     private const string TYPE_NAME = "ModSetting.ModBehaviour";
     private static Type modBehaviour;
@@ -356,14 +358,13 @@ public static class ModSettingAPI {
     }
 
     private static bool VersionAvailable() {
-        FieldInfo versionField = modBehaviour.GetField("Version", BindingFlags.Public | BindingFlags.Static);
+        FieldInfo versionField = modBehaviour.GetField("VERSION", BindingFlags.Public | BindingFlags.Static);
         if (versionField != null && versionField.FieldType == typeof(float)) {
-            float modSettingVersion = (float)versionField.GetValue(null);
-            if (!Mathf.Approximately(modSettingVersion, Version)) {
-                Debug.LogWarning($"警告:ModSetting的版本:{modSettingVersion} (API的版本:{Version}),新功能将无法使用");
+            Version modSettingVersion = (Version)versionField.GetValue(null);
+            if (modSettingVersion!=VERSION) {
+                Debug.LogWarning($"警告:ModSetting的版本:{modSettingVersion} (API的版本:{VERSION}),新功能将无法使用");
                 return false;
             }
-
             return true;
         }
 

@@ -22,6 +22,21 @@ namespace ModSetting {
                 {ENABLE,"ON"},
                 {DISABLE,"OFF"}
             };
+            languagePack[SystemLanguage.Japanese] = new Dictionary<string, string>() {
+                {TAB_NAME,"Mod設定" },
+                {ENABLE,"ON"},
+                {DISABLE,"OFF"}
+            };
+            languagePack[SystemLanguage.Korean] = new Dictionary<string, string>() {
+                {TAB_NAME,"Mod설정" },
+                {ENABLE,"ON"},
+                {DISABLE,"OFF"}
+            };
+            languagePack[SystemLanguage.Russian] = new Dictionary<string, string>() {
+                { TAB_NAME, "Мод Настройки" },
+                { ENABLE, "ON" },
+                { DISABLE, "OFF" }
+            };
         }
         public static void OnLanguageChanged(SystemLanguage newLanguage) {
             onLanguageChanged?.Invoke(newLanguage);

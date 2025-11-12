@@ -2,6 +2,7 @@
 using System.Linq;
 using Duckov.Options.UI;
 using ModSetting.Extensions;
+using TMPro;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 
@@ -15,7 +16,7 @@ namespace ModSetting.UI {
             if (!IsInit) {
                 save = new GameObject("save");
                 DontDestroyOnLoad(save);
-                TitleHeight = 100f;
+                ImageLength = 100f;
                 InitTab();
                 InitPrefab();
                 IsInit = true;

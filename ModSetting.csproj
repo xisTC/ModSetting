@@ -618,7 +618,7 @@
         </Reference>
     </ItemGroup>
     <ItemGroup>
-        <Compile Include="Api\ModSettingAPI.cs" />
+        <Compile Include="Api\SettingsBuilder.cs" />
         <Compile Include="Config\ConfigManager.cs" />
         <Compile Include="Config\Data\ConfigData.cs" />
         <Compile Include="Config\Data\ConfigDataReadConverter.cs" />
@@ -643,6 +643,7 @@
         <Compile Include="ModLocalizationManager.cs" />
         <Compile Include="Properties\AssemblyInfo.cs"/>
         <Compile Include="Saver.cs" />
+        <Compile Include="Setting.cs" />
         <Compile Include="UI\ButtonUI.cs" />
         <Compile Include="UI\DropDownUI.cs" />
         <Compile Include="UI\GlobalPanelUI.cs" />
@@ -657,6 +658,8 @@
     </ItemGroup>
     <ItemGroup>
       <Content Include="LICENSE" />
+      <Content Include="Api\ModSettingAPI.cs" />
+      <Content Include="readme.md" />
     </ItemGroup>
     <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets"/>
     <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

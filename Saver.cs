@@ -21,32 +21,6 @@ namespace ModSetting {
 
         public static void Load() {
             string configPath = GetConfigPath(CONFIG_FILE_NAME);
-            string oldConfigPath = GetOldConfigPath("config.json");
-            if (!File.Exists(configPath) && File.Exists(oldConfigPath)) {
-                string json = File.ReadAllText(oldConfigPath);
-                File.WriteAllText(configPath, json);
-                File.Delete(oldConfigPath);
-                ConfigData data;
-                try {
-                    data = jsonSerializer.Deserialize<ConfigData>(new JsonTextReader(new StringReader(json)));
-                } catch (Exception e) {
-                    Debug.Log("异常:" + e);
-                    throw;
-                }
-                List<ModConfigData> modConfigDatas = data.configDatas;
-                if (modConfigDatas != null && modConfigDatas.Count != 0) {
-                    foreach (ModConfigData modConfigData in modConfigDatas) {
-                        if (saveConfigs.TryGetValue(modConfigData.modId, out var configData)) {
-                            Debug.LogError("配置文件出现相同modId，异常");
-                        } else {
-                            saveConfigs.Add(modConfigData.modId, modConfigData);
-                        }
-                    }
-
-                    return;
-                }
-            }
-
             Debug.Log("加载配置文件:" + configPath);
             if (File.Exists(configPath)) {
                 string json = File.ReadAllText(configPath);
@@ -67,7 +41,6 @@ namespace ModSetting {
                             saveConfigs.Add(modConfigData.modId, modConfigData);
                         }
                     }
-
                     return;
                 }
             }
@@ -119,16 +92,6 @@ namespace ModSetting {
             }
 
             return Path.Combine(directory, CONFIG_FOLDER, fileName);
-        }
-
-        private static string GetOldConfigPath(string fileName) {
-            string assemblyLocation = typeof(ModBehaviour).Assembly.Location;
-            string directory = Path.GetDirectoryName(assemblyLocation);
-            if (string.IsNullOrEmpty(directory)) {
-                directory = Application.persistentDataPath ?? ".";
-            }
-
-            return Path.Combine(directory,fileName);
         }
 
         public static void Clear() => saveConfigs.Clear();
