@@ -65,10 +65,7 @@ namespace ModSetting {
             }
         }
         public void RemoveModKeyBinding(ModInfo modInfo) {
-            if (!modKeyBindingDic.Remove(modInfo.GetModId(), out var modKeyBinding)) {
-                Debug.LogError("同步错误/没有绑定ui");
-                return;
-            }
+            if (!modKeyBindingDic.Remove(modInfo.GetModId(), out var modKeyBinding)) return;
             List<KeyBindingUI> keyBindingUIs=modKeyBinding.GetKeyBindingUIs();
             foreach (KeyBindingUI keyBindingUI in keyBindingUIs) {
                 RemoveKeyCode(keyBindingUI.CurrentKey,keyBindingUI);

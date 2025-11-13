@@ -5,30 +5,38 @@ using ModSetting.Extensions;
 using TMPro;
 using UnityEngine;
 using UnityEngine.SceneManagement;
+using UnityEngine.UI;
 
 namespace ModSetting.UI {
     public class MainMenuPanelUI : PanelUI {
         private GameObject save;
 
         public override void Init() {
+            if (IsInit) return;
             optionsPanel = FindObjectsOfType<OptionsPanel>(true)
                 .FirstOrDefault(panel => panel.gameObject.scene.name == "MainMenu");
-            if (!IsInit) {
-                save = new GameObject("save");
-                DontDestroyOnLoad(save);
-                ImageLength = 100f;
-                InitTab();
-                InitPrefab();
-                IsInit = true;
-                Debug.Log("mod设置初始化完毕");
+            save = new GameObject("save");
+            DontDestroyOnLoad(save);
+            ImageLength = 100f;
+            InitTab();
+            InitPrefab();
+            RectTransform scrollRectTransform = optionsPanel.GetComponentsInChildren<ScrollRect>(true)
+                .Select(scrollRect => scrollRect.GetComponent<RectTransform>())
+                .FirstOrDefault(item => item.name == "ScrollView");
+            if (scrollRectTransform == null) {
+                Debug.LogError("找不到scrollRect");
+                scrollRectLength = 1000f;
             } else {
-                ResetTab();
+                scrollRectLength = scrollRectTransform.sizeDelta.x;
             }
+            IsInit = true;
+            Debug.Log("mod设置初始化完毕");
         }
 
-        private void ResetTab() {
+        public void ResetTab() {
             modTabButton.onClicked = null;
-            List<OptionsPanel_TabButton> tabButtons = optionsPanel.GetInstanceField<List<OptionsPanel_TabButton>>("tabButtons");
+            List<OptionsPanel_TabButton> tabButtons =
+                optionsPanel.GetInstanceField<List<OptionsPanel_TabButton>>("tabButtons");
             if (tabButtons == null) {
                 Debug.LogError("反射获取tabButtons失败");
                 return;
@@ -39,7 +47,8 @@ namespace ModSetting.UI {
                 Debug.Log("找不到不为null的tab");
                 return;
             }
-            modTabButton.transform.SetParent(tabButton.transform.parent,false);
+
+            modTabButton.transform.SetParent(tabButton.transform.parent, false);
             // 添加到tabButtons列表
             tabButtons.Add(modTabButton);
             // 调用Setup更新UI
@@ -49,8 +58,10 @@ namespace ModSetting.UI {
                 Debug.LogError("无法反射获取tabButton的tab成员");
                 return;
             }
-            modContent.transform.SetParent(tab.transform.parent,false);
+
+            modContent.transform.SetParent(tab.transform.parent, false);
         }
+
         protected override void ChildOnEnable() {
             SceneLoader.onStartedLoadingScene += OnStartedLoadingScene;
         }
@@ -62,8 +73,8 @@ namespace ModSetting.UI {
 
         private void OnStartedLoadingScene(SceneLoadingContext sceneLoadingContext) {
             if (SceneManager.GetActiveScene().name == "MainMenu") {
-                modContent.transform.SetParent(save.transform,false);
-                modTabButton.transform.SetParent(save.transform,false);
+                modContent.transform.SetParent(save.transform, false);
+                modTabButton.transform.SetParent(save.transform, false);
                 Debug.Log("保存组件");
             }
         }

@@ -65,14 +65,21 @@ namespace ModSetting.UI {
             label.fontStyle = FontStyles.Bold;
         }
 
-        public void Setup(Texture2D texture2D, string description,float fontSize,float imageLength) {
+        public void Setup(Texture2D texture2D, string description,float fontSize,float imageLength,float maxLength) {
             this.description = description;
             preview = texture2D;
             label.fontSize = fontSize;
             label.text = description;
             Vector2 preferredSize = label.GetPreferredValues(description);
             RectTransform rectTransform = label.GetComponent<RectTransform>();
-            rectTransform.sizeDelta = preferredSize;
+            //间距
+            float labelLength = maxLength - imageLength - 10 - 200 - 10;
+            if (preferredSize.x > labelLength) {
+                rectTransform.sizeDelta = new Vector2(labelLength, preferredSize.y);
+                label.enableAutoSizing = true;
+            } else {
+                rectTransform.sizeDelta = new Vector2(preferredSize.x, preferredSize.y);
+            }
             height = imageLength;
             SetImageAndButton();
         }

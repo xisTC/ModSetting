@@ -27,11 +27,13 @@ namespace ModSetting.UI {
         private readonly Dictionary<string, TitleUI> titleUiDic = new();
         private KeyBindingManager keyBindingManager;
         private TextMeshProUGUI tabName;
+        protected static float scrollRectLength;
         public float TitleFontSize { get; protected set; } = 36f;
         public float ImageLength { get; protected set; } = 50f;
         public bool IsInit { get; protected set; }
         public abstract void Init();
         protected void InitTab() {
+            if (optionsPanel == null) throw new Exception("找不到optionsPanel");
             List<OptionsPanel_TabButton> tabButtons = optionsPanel.GetInstanceField<List<OptionsPanel_TabButton>>("tabButtons");
             if (tabButtons == null) {
                 Debug.LogError("反射获取tabButtons失败");
@@ -366,7 +368,7 @@ namespace ModSetting.UI {
             if (modContent == null || titlePrefab == null) return null;
             TitleUI titleUI = Instantiate(titlePrefab, modContent.transform);
             titleUI.name += modInfo.name;
-            titleUI.Setup(modInfo.preview, modInfo.displayName, TitleFontSize,ImageLength);
+            titleUI.Setup(modInfo.preview, modInfo.displayName, TitleFontSize,ImageLength,scrollRectLength);
             titleUiDic.Add(modInfo.GetModId(), titleUI);
             return titleUI;
         }

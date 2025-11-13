@@ -8,6 +8,7 @@ namespace ModSetting.Config.Data {
         public string Key { get; private set; }
         public string Description { get; private set; }
         public UIType UIType => UIType.下拉列表;
+        public int Liveness { get; set; } = 1;
 
         public string Value { get; private set; }
 

@@ -3,6 +3,7 @@ namespace ModSetting.Config.Data {
         string Key { get;}
         string Description { get;}
         UIType UIType { get; }
+        int Liveness { get; set; }
         T GetValue<T>();
     }
 

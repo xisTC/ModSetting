@@ -54,7 +54,7 @@ namespace ModSetting {
                     mainMenuPanelUI = gameObject.AddComponent<MainMenuPanelUI>();
                     isInit = true;
                 } else {
-                    mainMenuPanelUI.Init();
+                    mainMenuPanelUI.ResetTab();
                 }
             }
         }

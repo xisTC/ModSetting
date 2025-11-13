@@ -6,7 +6,9 @@ namespace ModSetting.Config.Data {
     public class SliderConfigData : IConfigData {
         public string Key { get; private set; }
         public string Description { get; private set; }
-        public UIType UIType => UIType.滑块; 
+        public UIType UIType => UIType.滑块;
+        public int Liveness { get; set; } = 1;
+
         public T GetValue<T>() {
             if (typeof(T) == typeof(float)) {
                 return (T)(object)Value;

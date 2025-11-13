@@ -7,6 +7,7 @@ namespace ModSetting.Config.Data {
         public string Key { get; private set; }
         public string Description { get; private set; }
         public UIType UIType => UIType.按键绑定;
+        public int Liveness { get; set; } = 1;
         public T GetValue<T>() => (T)(object)Enum.Parse<KeyCode>(KeyCode);
 
         public string KeyCode { get; private set; }
