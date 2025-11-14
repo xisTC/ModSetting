@@ -35,6 +35,8 @@ namespace ModSetting.UI {
 
         public void ResetTab() {
             modTabButton.onClicked = null;
+            optionsPanel = FindObjectsOfType<OptionsPanel>(true)
+                .FirstOrDefault(panel => panel.gameObject.scene.name == "MainMenu");
             List<OptionsPanel_TabButton> tabButtons =
                 optionsPanel.GetInstanceField<List<OptionsPanel_TabButton>>("tabButtons");
             if (tabButtons == null) {
