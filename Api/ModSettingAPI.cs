@@ -389,14 +389,10 @@ public static class ModSettingAPI {
     private static Type FindTypeInAssemblies(string typeName) {
         Assembly[] assemblies = AppDomain.CurrentDomain.GetAssemblies();
         foreach (Assembly assembly in assemblies) {
-            if (assembly.FullName.Contains(MOD_NAME)) {
-                Debug.Log($"找到{MOD_NAME}相关程序集: {assembly.FullName}");
-            }
-
             Type type = assembly.GetType(typeName);
             if (type != null) return type;
         }
-        Debug.Log("找不到ModSetting程序集");
+        Debug.LogWarning($"(Mod:{modInfo.displayName})找不到ModSetting程序集");
         return null;
     }
 

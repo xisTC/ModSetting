@@ -1,5 +1,6 @@
 using System;
 using UnityEngine;
+using Logger = ModSetting.Log.Logger;
 
 namespace ModSetting.Config.Data {
     [Serializable]
@@ -16,6 +17,7 @@ namespace ModSetting.Config.Data {
             if (typeof(T)==typeof(int)) {
                 return (T)Convert.ChangeType(Value, typeof(T));
             }
+            Logger.Error($"滑块不支持获取此类型的值:{typeof(T)},key:{Key}");
             return default;
         }
 

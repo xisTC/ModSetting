@@ -17,7 +17,7 @@ namespace ModSetting {
         private static MainMenuPanelUI mainMenuPanelUI;
         private static readonly Queue<Action> actionQueue = new Queue<Action>();
         public static float Version= 0.5f;
-        public static readonly Version VERSION = new Version(0, 5, 0);
+        public static readonly Version VERSION = new Version(0, 5, 1);
         private const string MOD_NAME = "ModSetting";
         public static bool Enable { get; private set; }
         private void OnEnable() {
