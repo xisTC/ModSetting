@@ -2,12 +2,12 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Reflection;
 using ModSetting.Config;
 using ModSetting.Config.Data;
 using ModSetting.Extensions;
 using Newtonsoft.Json;
 using UnityEngine;
+using Logger = ModSetting.Log.Logger;
 
 namespace ModSetting {
     public static class Saver {
@@ -22,25 +22,25 @@ namespace ModSetting {
         public static void Load() {
             string configPath = GetConfigPath(CONFIG_FILE_NAME);
             string backupPath = configPath + ".bak";
-            Debug.Log("加载配置文件:" + configPath);
+            Logger.Info($"加载配置文件: {configPath}");
             if (File.Exists(configPath)) {
                 try {
                     if (LoadData(configPath)) return;
                 } catch (Exception e) {
-                    Debug.LogError($"主配置文件损坏: {e}，尝试从备份加载");
+                    Logger.Exception("主配置文件损坏,尝试从备份加载",e);
                 }
             }
             if (File.Exists(backupPath)) {
                 try {
                     if (LoadData(backupPath)) {
-                        Debug.Log("从备份文件加载成功");
+                        Logger.Info($"从备份文件加载成功");
                         return;
                     }
                 } catch (Exception e) {
-                    Debug.LogError($"备份配置文件也损坏: {e}");
+                    Logger.Exception("备份配置文件也损坏",e);
                 }
             }
-            Debug.Log("未找到配置文件/文件为空,启用默认配置");
+            Logger.Warning($"未找到配置文件/文件为空,启用默认配置");
         }
 
         private static bool LoadData(string configPath) {
@@ -49,7 +49,7 @@ namespace ModSetting {
             try {
                 data = jsonSerializer.Deserialize<ConfigData>(new JsonTextReader(new StringReader(json)));
             } catch (Exception e) {
-                Debug.LogError("配置文件解析异常，使用默认配置，异常信息:" + e);
+                Logger.Exception("配置文件解析异常，使用默认配置",e);
                 return true;
             }
             List<ModConfigData> modConfigDatas = data.configDatas;
@@ -57,7 +57,7 @@ namespace ModSetting {
                 saveConfigs.Clear();
                 foreach (ModConfigData modConfigData in modConfigDatas) {
                     if (saveConfigs.TryGetValue(modConfigData.modId, out _)) {
-                        Debug.LogError("配置文件出现相同modId，异常");
+                        Logger.Error("配置文件出现相同modId");
                     } else {
                         foreach (IConfigData configData in modConfigData.allConfigDatas) {
                             configData.Liveness--;
@@ -71,22 +71,21 @@ namespace ModSetting {
             return false;
         }
 
-        public static void Save() {
-            CreateConfigFile();
-        }
+        public static void Save() => CreateConfigFile();
 
         private static void CreateConfigFile() {
             string configPath = GetConfigPath(CONFIG_FILE_NAME);
             string tempPath = configPath + ".tmp";
             string backupPath = configPath + ".bak";
-            Debug.Log("创建配置文件:" + configPath);
+            Logger.Info($"创建配置文件: {configPath}");
             foreach (ModConfig modConfig in ConfigManager.GetConfigs()) {
                 saveConfigs[modConfig.ModInfo.GetModId()] = modConfig.ToModConfigData();
+                Logger.Info($"保存:{modConfig.ModInfo.displayName}");
             }
             ConfigData configData = new ConfigData(saveConfigs.Values.ToList());
             string directory = Path.GetDirectoryName(configPath);
             if (directory == null) {
-                Debug.LogError("directory不能为null");
+                Logger.Error($"directory为null,保存失败");
                 return;
             }
 
@@ -103,16 +102,15 @@ namespace ModSetting {
                     if (File.Exists(backupPath)) File.Delete(backupPath);
                     File.Move(configPath, backupPath);
                 }
-
                 File.Move(tempPath, configPath);
-                Debug.Log("创建完成");
+                Logger.Info($"创建完成");
             } catch (Exception e) {
-                Debug.LogError($"保存配置文件失败: {e}");
+                Logger.Exception("保存配置文件失败",e);
                 if (File.Exists(tempPath)) {
                     try {
                         File.Delete(tempPath);
                     } catch (Exception ex) {
-                        Debug.LogError($"删除临时文件失败: {ex}");
+                        Logger.Exception("删除临时文件失败",ex);
                     }
                 }
             }

@@ -1,8 +1,7 @@
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using ModSetting.Config.Data;
-using UnityEngine;
+using Logger = ModSetting.Log.Logger;
 
 namespace ModSetting.Config {
     public class DropDownConfig: IConfig {
@@ -22,11 +21,11 @@ namespace ModSetting.Config {
 
         public void SetValue(object value) {
             if (!IsTypeMatch(value.GetType())) {
-                Debug.LogError($"类型不匹配:{value.GetType()},无法赋值给:{GetTypesString()}");
+                Logger.Error($"类型不匹配:{value.GetType()},无法赋值给:{GetTypesString()}");
                 return;
             }
             if (!Options.Contains((string)value)) {
-                Debug.LogError("DropDown不能超出范围:"+value);
+                Logger.Error($"DropDown设置值失败,值不在Options范围无法设置值,value:{value}");
                 return;
             }
             Value = (string)value;

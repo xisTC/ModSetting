@@ -1,27 +1,28 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
+using Logger = ModSetting.Log.Logger;
 
-// todo 实现嵌套，UI应该持有config，UI销毁时应该移除对config的监听，防止内存泄露
 namespace ModSetting.UI {
     public class TitleUI : MonoBehaviour {
         [SerializeField] private TextMeshProUGUI label;
         [SerializeField] private Image icon;
         private Texture2D preview;
-        private float height = 50f;
-        private string description;
         private GameObject endGameObject;
-
-        private Dictionary<string, GameObject> settingDic = new Dictionary<string, GameObject>();
+        private float maxLength;
+        private float imageLength;
+        private Dictionary<string, GameObject> settingDic = new();
 
         // 添加 Group 字典
-        private Dictionary<string, GroupUI> groupDic = new Dictionary<string, GroupUI>();
+        private Dictionary<string, GroupUI> groupDic = new();
 
-        // 添加全局 UI 映射（key -> GroupUI），用于快速查找
-        private Dictionary<string, GroupUI> uiToGroupMap = new Dictionary<string, GroupUI>();
+        // 添加全局 UI 映射（key -> GroupUI），用于快速查找ui
+        private Dictionary<string, GroupUI> uiToGroupMap = new();
+        
+        private Dictionary<string, GroupUI> nestGroupMap = new();
+        private float height;
 
         private void Start() {
             HorizontalLayoutGroup layoutGroup = GetComponent<HorizontalLayoutGroup>();
@@ -30,7 +31,6 @@ namespace ModSetting.UI {
             layoutGroup.childControlWidth = false;
             layoutGroup.childControlHeight = false;
             layoutGroup.childForceExpandWidth = false;
-            layoutGroup.spacing = 200f;
             layoutGroup.padding = new RectOffset(10, 10, 10, 10);
         }
 
@@ -49,10 +49,10 @@ namespace ModSetting.UI {
             if (preview != null)
                 icon.sprite = Sprite.Create(preview, new Rect(0, 0, preview.width, preview.height),
                     new Vector2(0.5f, 0.5f));
-            RectTransform iconTransform = icon.GetComponent<RectTransform>();
-            iconTransform.sizeDelta = new Vector2(height, height);
+            UpdateImageLength(imageLength);
             Image bg = GetComponent<Image>();
-            Button button = gameObject.AddComponent<Button>();
+            Button button = gameObject.GetComponent<Button>();
+            if (button == null) button = gameObject.AddComponent<Button>();
             button.image = bg;
             button.onClick.AddListener(OnClickButton);
         }
@@ -66,28 +66,20 @@ namespace ModSetting.UI {
         }
 
         public void Setup(Texture2D texture2D, string description,float fontSize,float imageLength,float maxLength) {
-            this.description = description;
             preview = texture2D;
-            label.fontSize = fontSize;
             label.text = description;
-            Vector2 preferredSize = label.GetPreferredValues(description);
-            RectTransform rectTransform = label.GetComponent<RectTransform>();
-            //间距
-            float labelLength = maxLength - imageLength - 10 - 200 - 10;
-            if (preferredSize.x > labelLength) {
-                rectTransform.sizeDelta = new Vector2(labelLength, preferredSize.y);
-                label.enableAutoSizing = true;
-            } else {
-                rectTransform.sizeDelta = new Vector2(preferredSize.x, preferredSize.y);
-            }
-            height = imageLength;
+            this.maxLength = maxLength;
+            this.imageLength= imageLength;
+            height = imageLength + 10 + 10;
+            UpdateFontSize(fontSize);
+            UpdateSpace(Setting.TitleSpace);
             SetImageAndButton();
         }
 
         public void Add(string key, GameObject go) {
             GameObject firstGo = settingDic.Values.FirstOrDefault();
             if (!settingDic.TryAdd(key, go)) {
-                Debug.LogError("已经有此key的UI,key:" + key);
+                Logger.Error($"已经有此key的UI,添加失败.key:{key}");
                 return;
             }
             Transform lastTransform = endGameObject == null ? transform : endGameObject.transform;
@@ -100,7 +92,7 @@ namespace ModSetting.UI {
         private void AddTop(string key, GameObject go) {
             GameObject firstGo = settingDic.Values.FirstOrDefault();
             if (!settingDic.TryAdd(key, go)) {
-                Debug.LogError("已经有此key的UI,key:" + key);
+                Logger.Error($"已经有此key的UI,添加失败.key:{key}");
                 return;
             }
             int titleIndex = transform.GetSiblingIndex();
@@ -120,7 +112,7 @@ namespace ModSetting.UI {
             }
 
             foreach (GroupUI groupUI in groupDic.Values) {
-                groupUI.SetActive(!activeSelf);
+                groupUI.SetExpandedState(!activeSelf);
             }
         }
         public bool RemoveUI(string key) {
@@ -131,6 +123,10 @@ namespace ModSetting.UI {
                         Select(kv => kv.Key).ToList();
                     foreach (var k in keysToRemove) {
                         uiToGroupMap.Remove(k);
+                    }
+                    if (nestGroupMap.Values.Contains(groupUI)) {
+                        string nestKey = nestGroupMap.FirstOrDefault(kv => kv.Value == groupUI).Key;
+                        nestGroupMap.Remove(nestKey);
                     }
                     if (groupUI.Contains(endGameObject)) {
                         groupUI.Clear();
@@ -153,6 +149,15 @@ namespace ModSetting.UI {
                 }
                 return ui.RemoveUI(key);
             }
+            if (nestGroupMap.Remove(key, out var value)) {
+                GroupUI nestGroup= value.GetGroupUI(key);
+                if (nestGroup.Contains(endGameObject)) {
+                    nestGroup.Clear();
+                    endGameObject = null;
+                    UpdateEndGameObject();
+                }
+                return value.RemoveUI(key);
+            }
             return false;
         }
 
@@ -172,7 +177,7 @@ namespace ModSetting.UI {
 
         public void AddGroup(string key, GroupUI groupUI, List<string> keys, bool top) {
             if (!groupDic.TryAdd(key, groupUI)) {
-                Debug.LogError($"不能使用相同key,key:{key}");
+                Logger.Error($"不能使用相同key添加至标题,key:{key}");
                 return;
             }
             if (top) {
@@ -184,40 +189,92 @@ namespace ModSetting.UI {
             foreach (string otherKey in keys) {
                 if (settingDic.TryGetValue(otherKey, out var go)) {
                     go.transform.SetSiblingIndex(transform.parent.childCount-1);
-                    uiToGroupMap.Add(otherKey, groupUI);
+                    if (groupDic.TryGetValue(otherKey, out var ui)) {
+                        ui.MoveEnd();
+                        nestGroupMap.Add(otherKey, groupUI);
+                    } else {
+                        uiToGroupMap.Add(otherKey, groupUI);
+                    }
                 }
             }
             foreach (string otherKey in keys) {
                 if (settingDic.Remove(otherKey, out var go)) {
-                    groupUI.Add(otherKey, go);
+                    if (groupDic.Remove(otherKey, out var ui)) {
+                        groupUI.AddGroup(otherKey,ui);
+                    } else {
+                        groupUI.Add(otherKey, go);
+                    }
                 } else {
-                    Debug.LogError("title中没有此key,key:" + otherKey);
+                    Logger.Error($"title中没有此key,key:{otherKey}");
                 }
             }
+            groupUI.UpdateHeight(height);
+            groupUI.ResetPosition();
             //group的add会改变尾部物体，需要更新
-            GameObject groupLastGo = groupUI.GetEndGameObject();
+            GameObject groupEndGo = groupUI.GetEndGameObject();
             endGameObject = endGameObject.transform.GetSiblingIndex() >
-                            groupLastGo.transform.GetSiblingIndex()
+                            groupEndGo.transform.GetSiblingIndex()
                 ? endGameObject
-                : groupLastGo;
+                : groupEndGo;
         }
 
         private void UpdateEndGameObject() {
             List<GameObject> candidates = new();
-            GameObject lastGroupGo = groupDic.Values
+            GameObject endGroupGo = groupDic.Values
                 .OrderByDescending(groupUI => groupUI.transform.GetSiblingIndex())
                 .FirstOrDefault(ui => ui != null)?
                 .GetEndGameObject();
-            if(lastGroupGo!=null)candidates.Add(lastGroupGo);
-            GameObject lastUI = settingDic.Values
+            if(endGroupGo!=null)candidates.Add(endGroupGo);
+            GameObject endUi = settingDic.Values
                 .OrderByDescending(go=>go.transform.GetSiblingIndex())
                 .FirstOrDefault(item=>item!=null);
-            if(lastUI!=null)candidates.Add(lastUI);
+            if(endUi!=null)candidates.Add(endUi);
             if(endGameObject!=null)candidates.Add(endGameObject);
             endGameObject = candidates
                 .OrderByDescending(go => go.transform.GetSiblingIndex())
                 .FirstOrDefault(item => item != null);
         }
-        public bool HasNest(List<string> keys) => keys.Intersect(groupDic.Keys).Any();
+        public void UpdateFontSize(float fontSize) {
+            label.fontSize = fontSize;
+            Vector2 preferredSize = label.GetPreferredValues(label.text);
+            RectTransform rectTransform = label.GetComponent<RectTransform>();
+            //间距
+            float labelLength = maxLength - imageLength - 10 - Setting.TitleSpace - 10;
+            if (preferredSize.x > labelLength) {
+                rectTransform.sizeDelta = new Vector2(labelLength, preferredSize.y);
+                // 设置文本溢出模式为省略号
+                label.overflowMode = TextOverflowModes.Ellipsis;
+            } else {
+                rectTransform.sizeDelta = new Vector2(preferredSize.x, preferredSize.y);
+                label.overflowMode = TextOverflowModes.Overflow;
+            }
+            UpdateHeight();
+        }
+
+        public void UpdateImageLength(float imageLength) {
+            this.imageLength = imageLength;
+            RectTransform iconTransform = icon.GetComponent<RectTransform>();
+            iconTransform.sizeDelta = new Vector2(imageLength, imageLength);
+            if (imageLength + 10 + 10 + Setting.TitleSpace+label.rectTransform.rect.width> maxLength) UpdateFontSize(label.fontSize);
+            UpdateHeight();
+        }
+
+        public void UpdateSpace(float space) {
+            HorizontalLayoutGroup layoutGroup = GetComponent<HorizontalLayoutGroup>();
+            if (layoutGroup == null) return;
+            layoutGroup.spacing = space;
+            if (imageLength + 10 + 10 +space+label.rectTransform.rect.width> maxLength) UpdateFontSize(label.fontSize);
+        }
+
+        private void UpdateHeight() {
+            if (imageLength + 10 + 10 > height || 
+                label.rectTransform.rect.height > height||
+                (imageLength+10+10<height&&label.rectTransform.rect.height<height)) {
+                height = Mathf.Max(imageLength + 10 + 10, label.rectTransform.rect.height);
+                foreach (GroupUI groupUI in groupDic.Values) {
+                    groupUI.UpdateHeight(height);
+                }
+            }
+        }
     }
 }

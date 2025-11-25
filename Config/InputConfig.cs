@@ -1,7 +1,7 @@
 using System;
 using System.Collections.Generic;
 using ModSetting.Config.Data;
-using UnityEngine;
+using Logger = ModSetting.Log.Logger;
 
 namespace ModSetting.Config {
     public class InputConfig : IConfig {
@@ -25,7 +25,7 @@ namespace ModSetting.Config {
 
         public void SetValue(object value) {
             if (!IsTypeMatch(value.GetType())) {
-                Debug.LogError($"类型不匹配:{value.GetType()},无法赋值给:{GetTypesString()}");
+                Logger.Error($"类型不匹配:{value.GetType()},无法赋值给:{GetTypesString()}");
                 return;
             }
             Value = (string)value;

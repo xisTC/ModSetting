@@ -636,9 +636,13 @@
         <Compile Include="Config\ModConfig.cs" />
         <Compile Include="Config\SliderConfig.cs" />
         <Compile Include="Config\ToggleConfig.cs" />
+        <Compile Include="Extensions\KeyCodeExtension.cs" />
+        <Compile Include="Extensions\KeyExtension.cs" />
         <Compile Include="Extensions\ModInfoExtension.cs" />
         <Compile Include="Extensions\ReflectionExtension.cs" />
         <Compile Include="KeyBindingManager.cs" />
+        <Compile Include="KeyCodeConverter.cs" />
+        <Compile Include="Log\Logger.cs" />
         <Compile Include="ModBehaviour.cs" />
         <Compile Include="ModLocalizationManager.cs" />
         <Compile Include="Properties\AssemblyInfo.cs"/>

@@ -4,13 +4,13 @@ using System.Linq;
 using System.Reflection;
 using Duckov.Modding;
 using UnityEngine;
+using UnityEngine.InputSystem;
 using Debug = UnityEngine.Debug;
 
 public static class ModSettingAPI {
     private const string ADD_DROP_DOWN_LIST = "AddDropDownList";
     private const string ADD_SLIDER = "AddSlider";
     private const string ADD_TOGGLE = "AddToggle";
-    private const string ADD_KEYBINDING = "AddKeybinding";
     private const string GET_VALUE = "GetValue";
     private const string SET_VALUE = "SetValue";
     private const string REMOVE_UI = "RemoveUI";
@@ -21,8 +21,9 @@ public static class ModSettingAPI {
     private const string ADD_KEYBINDING_WITH_DEFAULT = "AddKeybindingWithDefault";
     private const string ADD_BUTTON = "AddButton";
     private const string ADD_GROUP = "AddGroup";
-    private static float Version = 0.4f;
-    private static readonly Version VERSION = new Version(0, 4, 0);
+    private const string ADD_KEYBINDING_WITH_KEY = "AddKeybindingWithKey";
+    private const string CLEAR = "Clear";
+    private static readonly Version VERSION = new Version(0, 5, 0);
     public const string MOD_NAME = "ModSetting";
     private const string TYPE_NAME = "ModSetting.ModBehaviour";
     private static Type modBehaviour;
@@ -37,7 +38,6 @@ public static class ModSettingAPI {
         ADD_DROP_DOWN_LIST,
         ADD_SLIDER,
         ADD_TOGGLE,
-        ADD_KEYBINDING,
         GET_VALUE,
         SET_VALUE,
         REMOVE_UI,
@@ -47,7 +47,9 @@ public static class ModSettingAPI {
         GET_SAVED_VALUE,
         ADD_KEYBINDING_WITH_DEFAULT,
         ADD_BUTTON,
-        ADD_GROUP
+        ADD_GROUP,
+        ADD_KEYBINDING_WITH_KEY,
+        CLEAR,
     };
 
     /// <summary>
@@ -95,7 +97,8 @@ public static class ModSettingAPI {
         return InvokeMethod(ADD_DROP_DOWN_LIST,
             ADD_DROP_DOWN_LIST,
             new object[] { modInfo, key, description, options, defaultValue, onValueChange },
-            delegateType);
+            delegateType,
+            new []{typeof(ModInfo), typeof(string),typeof(string), typeof(List<string>),typeof(string),typeof(Action<string>)});
     }
 
     /// <summary>
@@ -163,28 +166,11 @@ public static class ModSettingAPI {
     public static bool AddToggle(string key, string description,
         bool enable, Action<bool> onValueChange = null) {
         if (!Available(key)) return false;
-        Type delegateType = typeof(Action<ModInfo, string, string, bool, Action<bool>>);
         return InvokeMethod(ADD_TOGGLE,
             ADD_TOGGLE,
             new object[] { modInfo, key, description, enable, onValueChange },
-            delegateType);
-    }
-
-    /// <summary>
-    /// 添加一个按键绑定控件，默认值None
-    /// </summary>
-    /// <param name="key">控件key</param>
-    /// <param name="description">描述文本</param>
-    /// <param name="keyCode">当前值</param>
-    /// <param name="onValueChange">值改变时的回调函数</param>
-    /// <returns></returns>
-    public static bool AddKeybinding(string key, string description,
-        KeyCode keyCode, Action<KeyCode> onValueChange = null) {
-        if (!Available(key)) return false;
-        return InvokeMethod(ADD_KEYBINDING,
-            ADD_KEYBINDING,
-            new object[] { modInfo, key, description, keyCode, onValueChange },
-            typeof(Action<ModInfo, string, string, KeyCode, Action<KeyCode>>));
+            typeof(Action<ModInfo, string, string, bool, Action<bool>>),
+            new []{typeof(ModInfo), typeof(string),typeof(string),typeof(bool), typeof(Action<bool>)});
     }
 
     /// <summary>
@@ -197,12 +183,22 @@ public static class ModSettingAPI {
     /// <param name="onValueChange">值改变时的回调函数</param>
     /// <returns></returns>
     public static bool AddKeybinding(string key, string description,
-        KeyCode keyCode, KeyCode defaultKeyCode, Action<KeyCode> onValueChange = null) {
+        KeyCode keyCode, KeyCode defaultKeyCode=KeyCode.None, Action<KeyCode> onValueChange = null) {
         if (!Available(key)) return false;
         return InvokeMethod(ADD_KEYBINDING_WITH_DEFAULT,
             ADD_KEYBINDING_WITH_DEFAULT,
             new object[] { modInfo, key, description, keyCode, defaultKeyCode, onValueChange },
-            typeof(Action<ModInfo, string, string, KeyCode, KeyCode, Action<KeyCode>>));
+            typeof(Action<ModInfo, string, string, KeyCode, KeyCode, Action<KeyCode>>),
+            new []{typeof(ModInfo), typeof(string), typeof(string), typeof(KeyCode), typeof(KeyCode), typeof(Action<KeyCode>)});
+    }
+    public static bool AddKeybinding(string key, string description,
+        Key currentKey, Key defaultKey, Action<Key> onValueChange = null) {
+        if (!Available(key)) return false;
+        return InvokeMethod(ADD_KEYBINDING_WITH_KEY,
+            ADD_KEYBINDING_WITH_KEY,
+            new object[] { modInfo, key, description, currentKey, defaultKey, onValueChange },
+            typeof(Action<ModInfo, string, string, Key, Key, Action<Key>>),
+            new []{typeof(ModInfo), typeof(string), typeof(string), typeof(Key), typeof(Key), typeof(Action<Key>)});
     }
 
     /// <summary>
@@ -220,7 +216,8 @@ public static class ModSettingAPI {
         return InvokeMethod(ADD_INPUT,
             ADD_INPUT,
             new object[] { modInfo, key, description, defaultValue, characterLimit, onValueChange },
-            typeof(Action<ModInfo, string, string, string, int, Action<string>>));
+            typeof(Action<ModInfo, string, string, string, int, Action<string>>),
+            new []{typeof(ModInfo), typeof(string), typeof(string), typeof(string),typeof(int), typeof(Action<string>)});
     }
 
     /// <summary>
@@ -237,7 +234,8 @@ public static class ModSettingAPI {
         return InvokeMethod(ADD_BUTTON,
             ADD_BUTTON,
             new object[] { modInfo, key, description, buttonText, onClickButton },
-            typeof(Action<ModInfo, string, string, string, Action>));
+            typeof(Action<ModInfo, string, string, string, Action>),
+            new []{typeof(ModInfo),typeof(string), typeof(string), typeof(string),typeof(Action)});
     }
 
     /// <summary>
@@ -256,7 +254,8 @@ public static class ModSettingAPI {
         return InvokeMethod(ADD_GROUP,
             ADD_GROUP,
             new object[] { modInfo, key, description, keys, scale, topInsert, open },
-            typeof(Action<ModInfo, string, string, List<string>, float, bool, bool>));
+            typeof(Action<ModInfo, string, string, List<string>, float, bool, bool>),
+            new []{typeof(ModInfo), typeof(string), typeof(string), typeof(List<string>), typeof(float), typeof(bool), typeof(bool)});
     }
 
     /// <summary>
@@ -335,7 +334,8 @@ public static class ModSettingAPI {
         return InvokeMethod(REMOVE_UI,
             REMOVE_UI,
             new object[] { modInfo, key, callback },
-            typeof(Action<ModInfo, string, Action<bool>>));
+            typeof(Action<ModInfo, string, Action<bool>>),
+            new[] { typeof(ModInfo), typeof(string), typeof(Action<bool>) });
     }
 
     /// <summary>
@@ -345,10 +345,25 @@ public static class ModSettingAPI {
     /// <returns></returns>
     public static bool RemoveMod(Action<bool> callback = null) {
         if (!Available()) return false;
-        Type delegateType = typeof(Action<ModInfo, Action<bool>>);
-        return InvokeMethod(REMOVE_MOD, REMOVE_MOD, new object[] { modInfo, callback }, delegateType);
+        return InvokeMethod(REMOVE_MOD, 
+            REMOVE_MOD, 
+            new object[] { modInfo, callback }, 
+            typeof(Action<ModInfo, Action<bool>>),
+            new[] { typeof(ModInfo), typeof(Action<bool>) });
     }
-
+    /// <summary>
+    /// 移除所有UI，不包括标题，用于切换语言更新UI
+    /// </summary>
+    /// <param name="callback">回调函数返回操作结果</param>
+    /// <returns></returns>
+    public static bool Clear(Action<bool> callback=null) {
+        if (!Available()) return false;
+        return InvokeMethod(CLEAR,
+            CLEAR,
+            new object[] { modInfo, callback },
+            typeof(Action<ModInfo, Action<bool>>),
+            new[] { typeof(ModInfo), typeof(Action<bool>) });
+    }
     private static bool Available() {
         return IsInit && modInfo.displayName != null && modInfo.name != null;
     }
@@ -381,8 +396,7 @@ public static class ModSettingAPI {
             Type type = assembly.GetType(typeName);
             if (type != null) return type;
         }
-
-        Debug.Log("找不到程序集");
+        Debug.Log("找不到ModSetting程序集");
         return null;
     }
 
@@ -399,7 +413,6 @@ public static class ModSettingAPI {
                     if (!IsParameterTypeMatch(parameters[i].ParameterType, parameterTypes[i]))
                         return false;
                 }
-
                 return true;
             }).FirstOrDefault();
         } else {
@@ -422,10 +435,13 @@ public static class ModSettingAPI {
     }
 
     private static bool InvokeMethod(string cacheKey, string methodName, object[] parameters, Type delegateType,
-        Type[] paramTypes = null) {
+        Type[] paramTypes) {
         if (!methodCache.ContainsKey(cacheKey)) {
             MethodInfo method = GetStaticPublicMethodInfo(methodName, paramTypes);
-            if (method == null) return false;
+            if (method == null) {
+                Debug.LogError($"找不到此方法{methodName},无法调用");
+                return false;
+            }
             // 创建委托
             methodCache[cacheKey] = Delegate.CreateDelegate(delegateType, method);
         }

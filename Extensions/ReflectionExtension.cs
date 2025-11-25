@@ -1,5 +1,5 @@
 ﻿using System.Reflection;
-using UnityEngine;
+using Logger = ModSetting.Log.Logger;
 
 namespace ModSetting.Extensions {
     public static class ReflectionExtension {
@@ -18,7 +18,7 @@ namespace ModSetting.Extensions {
         public static bool SetInstanceField(this object instance, string fieldName, object newValue) {
             FieldInfo fieldInfo = GetInstanceFieldInfo(instance, fieldName);
             if (fieldInfo == null) {
-                Debug.Log(fieldName+"=>设置字段失败，字段信息为null:");
+                Logger.Error($"找不到字段:{fieldName},设置字段失败");
                 return false;
             }
             fieldInfo.SetValue(instance, newValue);
@@ -29,7 +29,7 @@ namespace ModSetting.Extensions {
             BindingFlags bindingFlags = BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance) {
             MethodInfo methodInfo = instance.GetType().GetMethod(methodName,bindingFlags);
             if (methodInfo == null) {
-                Debug.Log(methodName+"=>执行方法失败，方法信息为null:");
+                Logger.Error($"找不到方法:{methodName},执行方法失败");
             }
             methodInfo?.Invoke(instance, parameters);
         }

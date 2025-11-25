@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using ModSetting.Config.Data;
 using UnityEngine;
+using Logger = ModSetting.Log.Logger;
 
 namespace ModSetting.Config {
     public class KeyBindingConfig: IConfig {
@@ -21,7 +22,7 @@ namespace ModSetting.Config {
         public T GetValue<T>() => (T)(object)KeyCode;
         public void SetValue(object keyCode) {
             if (!IsTypeMatch(keyCode.GetType())) {
-                Debug.LogError($"类型不匹配:{keyCode.GetType()},无法赋值给:{GetTypesString()}");
+                Logger.Error($"类型不匹配:{keyCode.GetType()},无法赋值给:{GetTypesString()}");
                 return;
             }
             SetValue((KeyCode)keyCode);

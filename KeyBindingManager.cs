@@ -1,10 +1,10 @@
 using System.Collections.Generic;
 using System.Linq;
 using Duckov.Modding;
-using ModSetting.Config;
 using ModSetting.Extensions;
 using ModSetting.UI;
 using UnityEngine;
+using Logger = ModSetting.Log.Logger;
 
 namespace ModSetting {
     public class KeyBindingManager {
@@ -39,7 +39,7 @@ namespace ModSetting {
                     bindingUI.UpdateDisplay();
                 }
             } else {
-                Debug.LogError("找不到此keycode:"+keyCode);
+                Logger.Error($"移除keycode失败,找不到此keycode:{keyCode}");
             }
         }
 
@@ -61,7 +61,7 @@ namespace ModSetting {
             modKeyBinding.RemoveKeyBindingUI(key);
             if (!modKeyBinding.HasKeyBindingUI()) {
                 modKeyBindingDic.Remove(modInfo.GetModId());
-                Debug.Log("按键绑定已经没了，移除绑定");
+                Logger.Info("按键绑定已经没了，移除绑定");
             }
         }
         public void RemoveModKeyBinding(ModInfo modInfo) {
@@ -78,7 +78,7 @@ namespace ModSetting {
                 if (uis.Count==1) return Color.clear;
                 if (uis.Count==2) return Color.yellow;
             } else {
-                Debug.LogError("此keyCode没有加入字典中");
+                Logger.Error($"此keyCode没有加入字典中,获取颜色失败");
             }
             return Color.red;
         }
@@ -94,13 +94,13 @@ namespace ModSetting {
 
         public void AddKeyBindingUI(string key, KeyBindingUI keyBindingUI) {
             if (keyBindingUiDic.TryGetValue(key,out _)) {
-                Debug.LogError("已经添加过此key,key:"+key);
+                Logger.Error($"添加绑定key失败,已经添加过此key,key:{key}");
             } else {
                 keyBindingUiDic.Add(key,keyBindingUI);
             }
         }
         public void RemoveKeyBindingUI(string key) {
-            if (!keyBindingUiDic.Remove(key)) Debug.LogError("删除失败:"+key);
+            if (!keyBindingUiDic.Remove(key)) Logger.Error($"删除绑定key失败,key不存在,key:{key}");
         }
 
         public bool HasKeyBindingUI() => keyBindingUiDic.Values.Count > 0;

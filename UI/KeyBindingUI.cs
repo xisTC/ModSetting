@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using ModSetting.Config;
 using TMPro;
 using UnityEngine;
@@ -14,6 +15,7 @@ namespace ModSetting.UI {
         private KeyCode defaultKeyCode;
         private KeyCode newKeyCode;
         private KeyBindingManager keyBindingManager;
+        private HashSet<KeyCode> validKeyCodes;
         public event Action<KeyCode> onValueChange;
         public KeyCode CurrentKey => newKeyCode;
         private void Awake() {
@@ -26,7 +28,6 @@ namespace ModSetting.UI {
             HandleKeyInput();
         }
 
-        //管理text,从InputIndicator中获取
 
         public void Init(TextMeshProUGUI label, Button rebindButton, Button clearButton,TextMeshProUGUI text,string defaultDescription,KeyCode defaultKeyCode) {
             this.label = label;
@@ -37,7 +38,7 @@ namespace ModSetting.UI {
             this.clearButton = clearButton;
         }
 
-        public void Setup(KeyBindingConfig keyBindingConfig,KeyBindingManager keyBindingManager) {
+        public void Setup(KeyBindingConfig keyBindingConfig,KeyBindingManager keyBindingManager,List<KeyCode> validKeyCodes) {
             label.text = keyBindingConfig.Description;
             defaultKeyCode = keyBindingConfig.DefaultKeyCode;
             this.keyBindingManager = keyBindingManager;
@@ -45,15 +46,15 @@ namespace ModSetting.UI {
             keyBindingConfig.OnValueChange +=SetNewKey;
             keyBindingManager.AddKeyCode(newKeyCode,this);
             SetNewKey(keyBindingConfig.KeyCode);
+            this.validKeyCodes = new HashSet<KeyCode>(validKeyCodes);
+            this.validKeyCodes.ExceptWith(new [] { KeyCode.None ,KeyCode.Escape});
+            
         }
 
         private void HandleKeyInput() {
             if (!Input.anyKeyDown) return;
-            foreach (KeyCode keyCode in Enum.GetValues(typeof(KeyCode))) {
+            foreach (KeyCode keyCode in validKeyCodes) {
                 if (Input.GetKeyDown(keyCode)) {
-                    // 跳过不允许的键
-                    if (!IsKeyAllowed(keyCode)) continue;
-                    // 完成重绑定
                     CompleteRebinding(keyCode);
                     return;
                 }
@@ -110,14 +111,7 @@ namespace ModSetting.UI {
         private void OnClickBindingButton() {
             StartRebinding();
         }
-        private bool IsKeyAllowed(KeyCode key) {
-            // 禁止绑定的键
-            KeyCode[] forbiddenKeys = {
-                KeyCode.None,
-                KeyCode.Escape
-            };
-            return System.Array.IndexOf(forbiddenKeys, key) == -1;
-        }
+        
         string GetKeyCodeDisplayName(KeyCode key) {
             // 美化键位显示名称
             switch (key) {

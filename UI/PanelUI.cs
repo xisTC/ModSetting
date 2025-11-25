@@ -10,6 +10,7 @@ using SodaCraft.Localizations;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
+using Logger = ModSetting.Log.Logger;
 
 namespace ModSetting.UI {
     public abstract class PanelUI : MonoBehaviour {
@@ -20,46 +21,44 @@ namespace ModSetting.UI {
         private SliderUI sliderPrefab;
         private ToggleUI togglePrefab;
         private KeyBindingUI keyBindEntryPrefab;
-        private TitleUI titlePrefab;
+        protected TitleUI titlePrefab;
         private InputUI inputPrefab;
         private ButtonUI buttonPrefab;
         private GroupUI groupPrefab;
-        private readonly Dictionary<string, TitleUI> titleUiDic = new();
+        protected readonly Dictionary<string, TitleUI> titleUiDic = new();
         private KeyBindingManager keyBindingManager;
         private TextMeshProUGUI tabName;
-        protected static float scrollRectLength;
-        public float TitleFontSize { get; protected set; } = 36f;
-        public float ImageLength { get; protected set; } = 50f;
+        protected static float uiLenght = 1416.03f;
         public bool IsInit { get; protected set; }
         public abstract void Init();
         protected void InitTab() {
             if (optionsPanel == null) throw new Exception("找不到optionsPanel");
             List<OptionsPanel_TabButton> tabButtons = optionsPanel.GetInstanceField<List<OptionsPanel_TabButton>>("tabButtons");
             if (tabButtons == null) {
-                Debug.LogError("反射获取tabButtons失败");
+                Logger.Error($"反射获取tabButtons失败,找不到字段tabButtons");
                 return;
             }
             OptionsPanel_TabButton tabButton = tabButtons
                 .Where(button=>button!=optionsPanel.GetSelection())
                 .FirstOrDefault(item => item != null);
             if (tabButton == null) {
-                Debug.LogError("找不到不为null的tab");
+                Logger.Error($"找不到不为null的tab");
                 return;
             }
             // 复制一个tabButton的游戏对象
             GameObject tabButtonGameObjectClone =
                 Instantiate(tabButton.gameObject, tabButton.transform.parent);
             modTabButton = tabButtonGameObjectClone.GetComponent<OptionsPanel_TabButton>();
-            modTabButton.name = "modTab";
             if (modTabButton == null) {
-                Debug.LogError("无法获取克隆的GameObject的OptionsPanel_TabButton组件");
+                Logger.Error($"无法获取克隆的GameObject的OptionsPanel_TabButton组件");
                 DestroySafely(tabButtonGameObjectClone);
                 return;
             }
+            modTabButton.name = "modTab";
             // 获取原始tab并克隆
             var tab = modTabButton.GetInstanceField<GameObject>("tab");
             if (tab == null) {
-                Debug.LogError("无法反射获取modTabButton的tab成员");
+                Logger.Error($"反射获取tabButton的tab成员失败");
                 DestroySafely(tabButtonGameObjectClone);
                 return;
             }
@@ -69,7 +68,7 @@ namespace ModSetting.UI {
             // 设置克隆的tab到tabButton            
             bool result = modTabButton.SetInstanceField("tab", modContent);
             if (!result) {
-                Debug.LogError("反射修改tab成员失败!!");
+                Logger.Error($"反射修改tab成员失败!");
                 DestroySafely(tabButtonGameObjectClone);
                 DestroySafely(modContent);
                 return;
@@ -130,7 +129,7 @@ namespace ModSetting.UI {
                 titlePrefab = titleCloneGameObject.AddComponent<TitleUI>();
                 titlePrefab.Init();
                 titlePrefab.name = "标题";
-                Debug.Log("成功创建titlePrefab预制体");
+                Logger.Info($"成功创建titlePrefab预制体");
             }
         }
 
@@ -144,7 +143,7 @@ namespace ModSetting.UI {
                 groupPrefab = groupCloneGameObject.AddComponent<GroupUI>();
                 groupPrefab.Init();
                 groupPrefab.name = "分组";
-                Debug.Log("成功创建groupPrefab预制体");
+                Logger.Info($"成功创建groupPrefab预制体");
             }
         }
         private void CreateTogglePrefab(UIKeybindingEntry keybindingEntry) {
@@ -164,7 +163,7 @@ namespace ModSetting.UI {
                 togglePrefab = toggleCloneGameObject.AddComponent<ToggleUI>();
                 togglePrefab.Init(label, rebindButton, text, "toggle默认文本");
                 togglePrefab.name = "开关";
-                Debug.Log("成功创建togglePrefab预制体");
+                Logger.Info($"成功创建togglePrefab预制体");
             }
         }
 
@@ -185,7 +184,7 @@ namespace ModSetting.UI {
                 buttonPrefab = toggleCloneGameObject.AddComponent<ButtonUI>();
                 buttonPrefab.Init(label, rebindButton, text, "button默认文本","按钮");
                 buttonPrefab.name = "按钮";
-                Debug.Log("成功创建buttonPrefab预制体");
+                Logger.Info($"成功创建buttonPrefab预制体");
             }
         }
         private void CreateKeyBindPrefab(UIKeybindingEntry keybindingEntry) {
@@ -203,7 +202,7 @@ namespace ModSetting.UI {
                 keyBindEntryPrefab = keybindingGameObject.AddComponent<KeyBindingUI>();
                 keyBindEntryPrefab.Init(label, rebindButton,clearButton,text, "按键绑定默认文本", KeyCode.None);
                 keyBindEntryPrefab.name = "按键绑定";
-                Debug.Log("成功创建keyBindingPrefab预制体");
+                Logger.Info($"成功创建keyBindingPrefab预制体");
             }
         }
 
@@ -220,6 +219,7 @@ namespace ModSetting.UI {
                 inputPrefab = sliderGameObject.AddComponent<InputUI>();
                 inputPrefab.Init(label,inputField,"默认输入文本","默认值");
                 inputPrefab.name = "输入框";
+                Logger.Info($"成功创建输入框预制体");
             }
         }
 
@@ -235,7 +235,7 @@ namespace ModSetting.UI {
                 sliderPrefab = sliderGameObject.AddComponent<SliderUI>();
                 sliderPrefab.Init(label, slider, inputField, "slider默认文本", 0, 0, 100);
                 sliderPrefab.name = "滑块";
-                Debug.Log("成功创建slider预制体");
+                Logger.Info($"成功创建slider预制体");
             }
         }
         private void CreateDropDownPrefab(OptionsUIEntry_Dropdown optionDropDown) {
@@ -250,7 +250,7 @@ namespace ModSetting.UI {
                 dropDownPrefab.Init(label, dropdown,
                     "默认文本", new List<string>() { "选项1", "选项2", "选项3", "选项4" }, "选项2");
                 dropDownPrefab.name ="下拉列表";
-                Debug.Log("成功创建下拉列表预制体");
+                Logger.Info($"成功创建下拉列表预制体");
             }
         }
 
@@ -288,12 +288,12 @@ namespace ModSetting.UI {
             return true;
         }
 
-        public bool AddKeybinding(ModInfo modInfo, KeyBindingConfig keyBindingConfig,
+        public bool AddKeybinding(ModInfo modInfo, KeyBindingConfig keyBindingConfig,List<KeyCode> validKeyCodes,
             Action<KeyCode> onValueChange = null) {
             if (modContent == null || keyBindEntryPrefab == null) return false;
             KeyBindingUI keyBindingUI = Instantiate(keyBindEntryPrefab, modContent.transform);
             keyBindingUI.name += keyBindingConfig.Key;
-            keyBindingUI.Setup(keyBindingConfig, keyBindingManager);
+            keyBindingUI.Setup(keyBindingConfig, keyBindingManager,validKeyCodes);
             keyBindingManager.AddModKeyBinding(modInfo, keyBindingConfig.Key, keyBindingUI);
             keyBindingUI.onValueChange += onValueChange;
             AddUnderTheTitle(modInfo, keyBindingConfig.Key, keyBindingUI.gameObject);
@@ -323,14 +323,9 @@ namespace ModSetting.UI {
             if (modContent == null || groupPrefab == null) return false;
             if (keys.Contains(key)) return false;
             TitleUI titleUI = AddOrGetTitle(modInfo);
-            if (titleUI.HasNest(keys)) {
-                Debug.LogWarning($"暂不支持Group嵌套");
-                ConfigManager.RemoveUI(modInfo, key);
-                return false;
-            }
             GroupUI groupUI = Instantiate(groupPrefab, modContent.transform);
             groupUI.name += key;
-            groupUI.Setup(modInfo,description,keys,scale*ImageLength,open);
+            groupUI.Setup(modInfo,description,keys,scale,open);
             titleUI.AddGroup(key,groupUI,keys,top);
             return true;
         }
@@ -359,23 +354,12 @@ namespace ModSetting.UI {
             titleUI.Add(key, uiGo);
         }
 
-        private TitleUI AddOrGetTitle(ModInfo modInfo) {
-            return AddTitle(modInfo);
-        }
-
-        private TitleUI AddTitle(ModInfo modInfo) {
-            if (titleUiDic.TryGetValue(modInfo.GetModId(), out var title)) return title;
-            if (modContent == null || titlePrefab == null) return null;
-            TitleUI titleUI = Instantiate(titlePrefab, modContent.transform);
-            titleUI.name += modInfo.name;
-            titleUI.Setup(modInfo.preview, modInfo.displayName, TitleFontSize,ImageLength,scrollRectLength);
-            titleUiDic.Add(modInfo.GetModId(), titleUI);
-            return titleUI;
-        }
+        protected abstract TitleUI AddOrGetTitle(ModInfo modInfo);
         #endregion
         private void OnEnable() {
             Init();
             keyBindingManager = new KeyBindingManager();
+            Setting.OnTitleSpaceChanged += Setting_OnTitleSpaceChanged;
             ChildOnEnable();
         }
 
@@ -387,6 +371,7 @@ namespace ModSetting.UI {
             OptionsPanel_TabButton firstTabButton = tabButtons.FirstOrDefault(tab=>tab!=null);
             if (firstTabButton!=null)optionsPanel.SetSelection(firstTabButton);
             ModLocalizationManager.onLanguageChanged -= OnLanguageChanged;
+            Setting.OnTitleSpaceChanged -= Setting_OnTitleSpaceChanged;
             DestroySafely(modTabButton);
             DestroySafely(modContent);
             DestroySafely(dropDownPrefab);
@@ -420,6 +405,11 @@ namespace ModSetting.UI {
         
         private void OnLanguageChanged(SystemLanguage obj) {
             tabName.text =  ModLocalizationManager.GetText(ModLocalizationManager.TAB_NAME);
+        }
+        private void Setting_OnTitleSpaceChanged(float obj) {
+            foreach (TitleUI titleUI in titleUiDic.Values) {
+                titleUI.UpdateSpace(obj);
+            }
         }
     }
 }

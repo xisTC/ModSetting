@@ -3,6 +3,8 @@ using System.Collections.Generic;
 using Duckov.Modding;
 using ModSetting.Extensions;
 using UnityEngine;
+using UnityEngine.InputSystem;
+using Logger = ModSetting.Log.Logger;
 
 namespace ModSetting.Api {
     public class SettingsBuilder {
@@ -13,7 +15,7 @@ namespace ModSetting.Api {
         }
         public static SettingsBuilder Create(ModInfo modInfo) {
             if (modInfo.IsEmpty()) {
-                Debug.LogError("初始化失败，不能使用空的info进行初始化");
+                Logger.Error("SettingsBuilder初始化失败，不能使用空的info进行初始化");
                 return null;
             }
             if (allSetting.TryGetValue(modInfo.GetModId(),out var builder)) return builder;
@@ -47,6 +49,13 @@ namespace ModSetting.Api {
             if (Available(key)) ModBehaviour.AddKeybindingWithDefault(modInfo,key, description, keyCode, defaultKeyCode, onValueChange);
             return this;
         }
+
+        public SettingsBuilder AddKeybinding(string key, string description,
+            Key currentKey, Key defaultKey = Key.None, Action<Key> onValueChange = null) {
+            if(Available(key))ModBehaviour.AddKeybindingWithKey(modInfo,key, description, currentKey, defaultKey, onValueChange);
+            return this;
+        }
+
         public SettingsBuilder AddInput(string key, string description,
             string defaultValue, int characterLimit = 40, Action<string> onValueChange = null) {
             if (Available(key)) ModBehaviour.AddInput(modInfo,key, description, defaultValue, characterLimit, onValueChange);
@@ -84,13 +93,16 @@ namespace ModSetting.Api {
             return this;
         }
         public SettingsBuilder RemoveMod(Action<bool> callback = null) {
-            if (Available()) ModBehaviour.RemoveMod(modInfo);
+            if (Available()) ModBehaviour.RemoveMod(modInfo,callback);
             return this;
         }
-
+        public SettingsBuilder Clear(Action<bool> callback = null) {
+            if (Available()) ModBehaviour.Clear(modInfo,callback);
+            return this;
+        }
         private bool Available() {
             if (!ModBehaviour.Enable) {
-                Debug.LogWarning("modSetting未启用,添加失败");
+                Logger.Error($"(Mod:{modInfo.displayName})modSetting未启用,添加失败");
                 return false;
             }
             return !modInfo.IsEmpty();

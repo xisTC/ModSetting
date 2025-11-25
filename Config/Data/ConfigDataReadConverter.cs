@@ -1,7 +1,7 @@
 ﻿using System;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
-using UnityEngine;
+using Logger = ModSetting.Log.Logger;
 
 namespace ModSetting.Config.Data {
 public class ConfigDataReadConverter : JsonConverter<IConfigData>
@@ -32,7 +32,7 @@ public class ConfigDataReadConverter : JsonConverter<IConfigData>
             }
             catch (Exception ex)
             {
-                Debug.LogWarning($"使用 ToObject 解析 UIType 失败: {ex.Message}");
+                Logger.Exception("使用 ToObject 解析 UIType 失败",ex);
             }
             
             // 方法2：手动处理（备用）
@@ -44,7 +44,7 @@ public class ConfigDataReadConverter : JsonConverter<IConfigData>
             // 方法3：根据属性推断（最后手段）
             if (!uiType.HasValue)
             {
-                UnityEngine.Debug.Log("转化UIType失败");
+                Logger.Error("转化UIType失败");
                 return null;
             } 
             
@@ -53,7 +53,7 @@ public class ConfigDataReadConverter : JsonConverter<IConfigData>
         }
         catch (Exception ex)
         {
-            Debug.LogError($"反序列化 IConfigData 失败: {ex.Message}");
+            Logger.Exception("反序列化 IConfigData 失败",ex);
             return null;
         }
     }

@@ -2,13 +2,13 @@
 using System.Linq;
 using Duckov.Modding;
 using ModSetting.Extensions;
-using UnityEngine;
+using Logger = ModSetting.Log.Logger;
 
 //保存系统，优先从UI获取数据，如果没有，然后从保存系统中获取
 //不进行配置的删除，只有配置的覆盖
 namespace ModSetting.Config {
     public static class ConfigManager {
-        private static readonly Dictionary<string, ModConfig> configs = new Dictionary<string, ModConfig>();
+        private static readonly Dictionary<string, ModConfig> configs = new();
 
         public static void AddConfig(ModInfo modInfo, IConfig config) {
             if (configs.TryGetValue(modInfo.GetModId(), out var modConfig)) {
@@ -23,14 +23,14 @@ namespace ModSetting.Config {
         public static T GetValue<T>(ModInfo info, string key) {
             if (configs.TryGetValue(info.GetModId(), out var modConfig))
                 return modConfig.GetValue<T>(key);
-            Debug.LogError($"找不到此{info.displayName}的modId,key:" + key);
+            Logger.Error($"找不到{info.displayName}的配置,key:{key}");
             return default;
         }
 
         public static bool SetValue<T>(ModInfo info, string key, T value) {
             if (configs.TryGetValue(info.GetModId(), out var modConfig))
                 return modConfig.SetValue(key, value);
-            Debug.LogError($"找不到此{info.displayName}的配置,无法设置值");
+            Logger.Error($"找不到{info.displayName}的配置,无法设置值.key:{key};value:{value}");
             return false;
         }
 
@@ -41,7 +41,7 @@ namespace ModSetting.Config {
             configs.ContainsKey(info.GetModId()) && configs[info.GetModId()].RemoveKey(key);
 
         public static bool RemoveMod(ModInfo info) =>
-            configs.ContainsKey(info.GetModId()) && configs[info.GetModId()].Clear();
+            configs.ContainsKey(info.GetModId()) && configs[info.GetModId()].Clear()&& configs.Remove(info.GetModId());
 
         public static void Clear() => configs.Clear();
         public static List<ModConfig> GetConfigs() => configs.Values.ToList();

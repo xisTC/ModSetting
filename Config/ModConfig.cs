@@ -1,9 +1,8 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using Duckov.Modding;
 using ModSetting.Config.Data;
 using ModSetting.Extensions;
-using UnityEngine;
+using Logger = ModSetting.Log.Logger;
 
 
 namespace ModSetting.Config {
@@ -17,7 +16,7 @@ namespace ModSetting.Config {
         }
         public void AddConfig(IConfig config) {
             if (HasKey(config.Key)) {
-                Debug.LogError("已经有此key无法添加,key:"+config.Key);
+                Logger.Error($"(Mod:{ModInfo.displayName})已经有此key无法添加,key:{config.Key}");
                 return;
             }
             if (allConfigs.TryGetValue(config.Key,out IConfig oldConfig)) {
@@ -33,9 +32,9 @@ namespace ModSetting.Config {
                 if (config.IsTypeMatch(typeof(T))) {
                     return config.GetValue<T>();
                 }
-                Debug.LogError($"key和类型不匹配,key:{key};type:{typeof(T)}。类型应该为:{config.GetTypesString()}");
+                Logger.Error($"(Mod:{ModInfo.displayName})key和类型不匹配,key:{key};type:{typeof(T)}。类型应该为:{config.GetTypesString()}");
             } else {
-                Debug.LogError("找不到对应key的值,key:"+key);
+                Logger.Error($"(Mod:{ModInfo.displayName})找不到对应key的值,key:{key}");
             }
             return default;
         }
@@ -46,10 +45,10 @@ namespace ModSetting.Config {
                     config.SetValue(value);
                     return true;
                 }
-                Debug.LogError($"key和类型不匹配,key:{key};type:{typeof(T)}。类型应该为:{config.GetTypesString()}");
+                Logger.Error($"(Mod:{ModInfo.displayName})key和类型不匹配,key:{key};type:{typeof(T)}。类型应该为:{config.GetTypesString()}");
                 return false;
             }
-            Debug.LogError("找不到对应key的值,key:"+key);
+            Logger.Error($"(Mod:{ModInfo.displayName})找不到对应key的值,key:{key}");
             return false;
         }
 
@@ -63,7 +62,7 @@ namespace ModSetting.Config {
 
         public void AddKey(string key) {
             if (HasKey(key)) {
-                Debug.LogError("已经存在此key,key:"+key);
+                Logger.Error($"(Mod:{ModInfo.displayName})已经存在此key,key:{key}");
                 return;
             }
             activeKey.Add(key);
@@ -72,6 +71,7 @@ namespace ModSetting.Config {
         public bool HasKey(string key) => activeKey.Contains(key);
         public bool RemoveKey(string key) => activeKey.Remove(key);
 
+        public HashSet<string> GetActiveKeys() => activeKey;
         public bool Clear() {
             activeKey.Clear();
             return true;

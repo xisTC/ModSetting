@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using ModSetting.Config.Data;
 using UnityEngine;
+using Logger = ModSetting.Log.Logger;
 
 namespace ModSetting.Config {
     public class SliderConfig: IConfig{
@@ -33,12 +34,12 @@ namespace ModSetting.Config {
 
         public void SetValue(object value) {
             if (!IsTypeMatch(value.GetType())) {
-                Debug.LogError($"类型不匹配:{value.GetType()},无法赋值给:{GetTypesString()}");
+                Logger.Error($"类型不匹配:{value.GetType()},无法赋值给:{GetTypesString()}");
                 return;
             }
             float floatValue = Convert.ToSingle(value);
             if (floatValue < SliderRange.x || floatValue > SliderRange.y) {
-                Debug.LogError("Slider不能超出范围:"+floatValue);   
+                Logger.Error($"Slider不能超出范围:,value:{floatValue}");
             }
             SetValue(floatValue);
         }

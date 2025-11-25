@@ -1,11 +1,14 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using Duckov.Modding;
 using ModSetting.Config;
 using ModSetting.Extensions;
 using ModSetting.UI;
 using SodaCraft.Localizations;
 using UnityEngine;
+using UnityEngine.InputSystem;
+using Logger = ModSetting.Log.Logger;
 
 namespace ModSetting {
     public class ModBehaviour : Duckov.Modding.ModBehaviour{
@@ -13,23 +16,20 @@ namespace ModSetting {
         private static GlobalPanelUI globalPanelUI;
         private static MainMenuPanelUI mainMenuPanelUI;
         private static readonly Queue<Action> actionQueue = new Queue<Action>();
-        public static float Version= 0.4f;
-        public static readonly Version VERSION = new Version(0, 4, 2);
+        public static float Version= 0.5f;
+        public static readonly Version VERSION = new Version(0, 5, 0);
         private const string MOD_NAME = "ModSetting";
         public static bool Enable { get; private set; }
         private void OnEnable() {
-            Debug.Log("ModSetting:启用");
-            Enable = true;
+            Logger.Warning("ModSetting:启用");
             MainMenu.OnMainMenuAwake += Init;
             ModManager.OnModWillBeDeactivated += OnModWillBeDeactivated;
             LocalizationManager.OnSetLanguage += ModLocalizationManager.OnLanguageChanged;
-            ModLocalizationManager.Init();
-            if(!isInit)Init();
-            Saver.Load();
+            Enable = true;
         }
 
         private void OnDisable() {
-            Debug.Log("ModSetting:禁用");
+            Logger.Info("ModSetting:禁用");
             Enable = false;
             MainMenu.OnMainMenuAwake -= Init;
             ModManager.OnModWillBeDeactivated -= OnModWillBeDeactivated;
@@ -40,6 +40,8 @@ namespace ModSetting {
             Saver.Clear();
             ConfigManager.Clear();
             ModLocalizationManager.Clear();
+            KeyCodeConverter.Clear();
+            Setting.Clear();
         }
 
         private void Update() {
@@ -49,9 +51,9 @@ namespace ModSetting {
         private void Init() {
             if (FindAnyObjectByType(typeof(MainMenu)) != null) {
                 if (!isInit) {
-                    Debug.Log("开始初始化mod设置");
-                    globalPanelUI = gameObject.AddComponent<GlobalPanelUI>();
+                    Logger.Info($"开始初始化mod设置");
                     mainMenuPanelUI = gameObject.AddComponent<MainMenuPanelUI>();
+                    globalPanelUI = gameObject.AddComponent<GlobalPanelUI>();
                     isInit = true;
                 } else {
                     mainMenuPanelUI.ResetTab();
@@ -66,38 +68,31 @@ namespace ModSetting {
                 Action action = actionQueue.Dequeue();
                 action?.Invoke();
             }
-            Debug.Log("添加完毕");
+            Logger.Info($"队列执行完毕");
         }
 
         private static void AddAction(ModInfo modInfo,Action addConfigAction) {
-            if (modInfo.name == MOD_NAME) {
-                Debug.LogError("不能使用ModSetting信息");
-                return;
-            }
-            if (isInit&&globalPanelUI.IsInit && mainMenuPanelUI.IsInit) {
+            if (isInit&&globalPanelUI.IsInit && mainMenuPanelUI.IsInit&&actionQueue.Count == 0) {
                 try {
                     addConfigAction?.Invoke();
-                    // Debug.Log($"{modInfo.name}执行添加UI");
                 } catch (Exception e) {
-                    Debug.LogError("添加UI异常:"+e.StackTrace);
+                    Logger.Exception("ModSetting异常",e);
                 }
             } else {
                 actionQueue.Enqueue(addConfigAction);
-                Debug.Log($"{modInfo.name}加入队列，等待mod菜单初始化。当前队列长度: {actionQueue.Count}");
+                Logger.Info($"{modInfo.name}加入队列，等待mod菜单初始化。当前队列长度: {actionQueue.Count}");
             }
         }
 
         public static void AddDropDownList(ModInfo modInfo,string key,string description,
             List<string> options, string defaultValue,Action<string> onValueChange=null) {
             if (!options.Contains(defaultValue)) {
-                Debug.LogWarning("下拉列表options不包含此默认值,默认值:"+defaultValue);
+                Logger.Warning($"下拉列表options不包含此默认值,默认值:{defaultValue}");
                 options.Add(defaultValue);
             }
             AddAction(modInfo,() => {
-                if (ConfigManager.HasKey(modInfo, key)) {
-                    Debug.LogWarning("已经有相同的key无法添加,key:"+key);
-                    return;
-                }
+                if (HasKey(modInfo, key)) return;
+                Logger.Info($"(Mod:{modInfo.displayName})添加下拉列表,key:{key}");
                 DropDownConfig dropDownConfig = new DropDownConfig(key, description, options, defaultValue);
                 ConfigManager.AddConfig(modInfo, dropDownConfig);
                 globalPanelUI.AddDropDownList(modInfo,dropDownConfig,onValueChange);
@@ -111,10 +106,8 @@ namespace ModSetting {
             if (sliderRange.x > sliderRange.y) sliderRange = new Vector2(sliderRange.y, sliderRange.x);
             defaultValue = Math.Clamp(defaultValue, sliderRange.x, sliderRange.y);
             AddAction(modInfo,() => {
-                if (ConfigManager.HasKey(modInfo, key)) {
-                    Debug.LogWarning("已经有相同的key无法添加,key:"+key);
-                    return;
-                }
+                if (HasKey(modInfo, key)) return;
+                Logger.Info($"(Mod:{modInfo.displayName})添加滑块,key:{key}");
                 SliderConfig sliderConfig = new SliderConfig(key, description,defaultValue,sliderRange,decimalPlaces,characterLimit);
                 ConfigManager.AddConfig(modInfo, sliderConfig);
                 globalPanelUI.AddSlider(modInfo,sliderConfig,onValueChange);
@@ -128,10 +121,8 @@ namespace ModSetting {
             maxValue = minValue < maxValue ? maxValue : minValue;
             defaultValue = Math.Clamp(defaultValue, minValue, maxValue);
             AddAction(modInfo,() => {
-                if (ConfigManager.HasKey(modInfo, key)) {
-                    Debug.LogWarning("已经有相同的key无法添加,key:"+key);
-                    return;
-                }
+                if (HasKey(modInfo, key)) return;
+                Logger.Info($"(Mod:{modInfo.displayName})添加滑块,key:{key}");
                 SliderConfig sliderConfig = new SliderConfig(key, description,defaultValue,new Vector2(minValue,maxValue),0,characterLimit);
                 ConfigManager.AddConfig(modInfo, sliderConfig);
                 Action<float> floatCallback = onValueChange != null ? 
@@ -145,10 +136,8 @@ namespace ModSetting {
         public static void AddToggle(ModInfo modInfo,string key,string description,
             bool enable, Action<bool> onValueChange = null) {
             AddAction(modInfo,() => {
-                if (ConfigManager.HasKey(modInfo, key)) {
-                    Debug.LogWarning("已经有相同的key无法添加,key:"+key);
-                    return;
-                }
+                if (HasKey(modInfo, key)) return;
+                Logger.Info($"(Mod:{modInfo.displayName})添加开关,key:{key}");
                 ToggleConfig toggleConfig = new ToggleConfig(key, description, enable);
                 ConfigManager.AddConfig(modInfo, toggleConfig);
                 globalPanelUI.AddToggle(modInfo,toggleConfig,onValueChange);
@@ -159,14 +148,13 @@ namespace ModSetting {
         public static void AddKeybindingWithDefault(ModInfo modInfo,string key,string description,
             KeyCode keyCode,KeyCode defaultKeyCode,Action<KeyCode> onValueChange=null) {
             AddAction(modInfo,() => {
-                if (ConfigManager.HasKey(modInfo, key)) {
-                    Debug.LogWarning("已经有相同的key无法添加,key:"+key);
-                    return;
-                }
+                if (HasKey(modInfo, key)) return;
+                Logger.Info($"(Mod:{modInfo.displayName})添加按键绑定,key:{key}");
                 KeyBindingConfig keyBindingConfig = new KeyBindingConfig(key,description,keyCode,defaultKeyCode);
                 ConfigManager.AddConfig(modInfo, keyBindingConfig);
-                globalPanelUI.AddKeybinding(modInfo, keyBindingConfig,onValueChange);
-                mainMenuPanelUI.AddKeybinding(modInfo, keyBindingConfig,onValueChange);
+                List<KeyCode> keyCodes = ((KeyCode[])Enum.GetValues(typeof(KeyCode))).ToList();
+                globalPanelUI.AddKeybinding(modInfo, keyBindingConfig,keyCodes,onValueChange);
+                mainMenuPanelUI.AddKeybinding(modInfo, keyBindingConfig,keyCodes,onValueChange);
             });
         }
 
@@ -175,13 +163,24 @@ namespace ModSetting {
             AddKeybindingWithDefault(modInfo, key, description, keyCode,KeyCode.None,onValueChange);
         }
 
+        public static void AddKeybindingWithKey(ModInfo modInfo, string key, string description,
+            Key currentKey,Key defaultKey=Key.None,Action<Key> onValueChange = null) {
+            AddAction(modInfo,() => {
+                if (HasKey(modInfo, key)) return;
+                Logger.Info($"(Mod:{modInfo.displayName})添加按键绑定,key:{key}");
+                KeyBindingConfig keyBindingConfig = new KeyBindingConfig(key,description,currentKey.ToKeyCode(),defaultKey.ToKeyCode());
+                ConfigManager.AddConfig(modInfo, keyBindingConfig);
+                List<KeyCode> keyCodes = ((Key[])Enum.GetValues(typeof(Key))).Select(item=>item.ToKeyCode()).ToList();
+                globalPanelUI.AddKeybinding(modInfo, keyBindingConfig,keyCodes,keyCode=>onValueChange?.Invoke(keyCode.ToKey()));
+                mainMenuPanelUI.AddKeybinding(modInfo, keyBindingConfig,keyCodes,keyCode=>onValueChange?.Invoke(keyCode.ToKey()));
+            });
+        }
+
         public static void AddInput(ModInfo modInfo,string key,string description,
             string defaultValue,int characterLimit=40,Action<string> onValueChange=null) {
             AddAction(modInfo,() => {
-                if (ConfigManager.HasKey(modInfo, key)) {
-                    Debug.LogWarning("已经有相同的key无法添加,key:"+key);
-                    return;
-                }
+                if (HasKey(modInfo, key)) return;
+                Logger.Info($"(Mod:{modInfo.displayName})添加输入框,key:{key}");
                 InputConfig inputConfig = new InputConfig(key,description,defaultValue,characterLimit);
                 ConfigManager.AddConfig(modInfo, inputConfig);
                 globalPanelUI.AddInput(modInfo, inputConfig,onValueChange);
@@ -192,41 +191,40 @@ namespace ModSetting {
         public static void AddButton(ModInfo modInfo, string key, string description,
             string buttonText="按钮", Action onClickButton = null) {
             AddAction(modInfo,() => {
-                if (ConfigManager.HasKey(modInfo, key)) {
-                    Debug.LogWarning("已经有相同的key无法添加,key:"+key);
-                    return;
-                }
+                if (HasKey(modInfo, key)) return;
+                Logger.Info($"(Mod:{modInfo.displayName})添加按钮,key:{key}");
                 ConfigManager.AddKey(modInfo,key);
                 globalPanelUI.AddButton(modInfo,key, description, buttonText, onClickButton);
                 mainMenuPanelUI.AddButton(modInfo,key,description,buttonText,onClickButton);
             });
         }
+
         public static void AddGroup(ModInfo modInfo, string key, string description,
             List<string> keys, float scale=0.7f,bool topInsert=false,bool open=false) {
             if (keys == null || keys.Count == 0) {
-                Debug.LogError("group的keys不能为空");
+                Logger.Error($"group的keys不能为空");
                 return;
             }
             if (keys.Contains(key)) keys.Remove(key);
             AddAction(modInfo,() => {
-                if (ConfigManager.HasKey(modInfo, key)) {
-                    Debug.LogWarning("已经有相同的key无法添加,key:"+key);
-                    return;
-                }
+                if (HasKey(modInfo, key)) return;
                 foreach (string otherKey in keys) {
                     if (!ConfigManager.HasKey(modInfo,otherKey)) {
-                        Debug.LogError("不存在的key无法添加Group,key:"+otherKey);
+                        Logger.Error($"不存在的key无法添加Group,key:{otherKey}");
                         return;
                     }
                 }
+                Logger.Info($"(Mod:{modInfo.displayName})添加分组,key:{key}");
                 ConfigManager.AddKey(modInfo,key);
                 scale = Math.Clamp(scale, 0f, 0.9f);
                 globalPanelUI.AddGroup(modInfo,key, description, keys, scale,topInsert, open);
                 mainMenuPanelUI.AddGroup(modInfo,key,description,keys, scale,topInsert, open);
             });
         }
+
         public static void GetValue<T>(ModInfo modInfo, string key,Action<T> callback=null) {
             AddAction(modInfo,() => {
+                Logger.Info($"(Mod:{modInfo.displayName})获取值,key:{key}");
                 T value = ConfigManager.GetValue<T>(modInfo, key);
                 callback?.Invoke(value);
             });
@@ -234,6 +232,7 @@ namespace ModSetting {
 
         public static void SetValue<T>(ModInfo modInfo, string key,T value,Action<bool> callback=null) {
             AddAction(modInfo,() => {
+                Logger.Info($"(Mod:{modInfo.displayName})设置值,key:{key};value:{value}");
                 bool result = ConfigManager.SetValue<T>(modInfo, key, value);
                 callback?.Invoke(result);
             });
@@ -242,18 +241,19 @@ namespace ModSetting {
         public static bool HasConfig(ModInfo modInfo) => Saver.HasValue(modInfo.GetModId());
 
         public static bool GetSavedValue<T>(ModInfo modInfo, string key, out T value) {
+            Logger.Info($"(Mod:{modInfo.displayName})获取保存值,key:{key}");
             value = Saver.GetValue<T>(modInfo.GetModId(),key);
             return Saver.HasValue(modInfo.GetModId(), key);
         }
-
         public static void RemoveUI(ModInfo modInfo, string key,Action<bool> callback=null) {
             AddAction(modInfo,() => {
-                if (globalPanelUI.RemoveUI(modInfo,key)) {
-                    if (ConfigManager.RemoveUI(modInfo, key)&&mainMenuPanelUI.RemoveUI(modInfo,key)) {
+                if (ConfigManager.RemoveUI(modInfo, key)) {
+                    Logger.Info($"(Mod:{modInfo.displayName})移除ui,key:{key}");
+                    if (globalPanelUI.RemoveUI(modInfo,key)&&mainMenuPanelUI.RemoveUI(modInfo,key)) {
                         callback?.Invoke(true);
                         return;
                     }
-                    Debug.LogError("UI和ConfigManager不同步");
+                    Logger.Error($"UI和ConfigManager不同步");
                 }
                 callback?.Invoke(false);
             });
@@ -261,18 +261,53 @@ namespace ModSetting {
 
         public static void RemoveMod(ModInfo modInfo,Action<bool> callback=null) {
             AddAction(modInfo,() => {
+                Logger.Info($"(Mod:{modInfo.displayName})移除mod设置");
                 bool result = globalPanelUI.RemoveTitle(modInfo)&& mainMenuPanelUI.RemoveTitle(modInfo) &&ConfigManager.RemoveMod(modInfo);
                 callback?.Invoke(result);
             });
         }
 
+        public static void Clear(ModInfo modInfo,Action<bool> callback=null) {
+            AddAction(modInfo,() => {
+                Logger.Info($"(Mod:{modInfo.displayName})清空mod设置");
+                ModConfig modConfig = ConfigManager.GetConfig(modInfo);
+                if (modConfig == null) {
+                    callback?.Invoke(false);
+                    return;
+                }
+                HashSet<string> activeKeys = modConfig.GetActiveKeys();
+                List<string> list = new List<string>();
+                foreach (var key in activeKeys) list.Add(key);
+                foreach (string activeKey in list) {
+                    RemoveUI(modInfo,activeKey);
+                }
+                callback?.Invoke(true);
+            });
+        }
+
+        private static bool HasKey(ModInfo modInfo, string key) {
+            if (ConfigManager.HasKey(modInfo, key)) {
+                Logger.Warning($"(Mod:{modInfo.displayName})已经有相同的key无法添加,key:{key}");
+                return true;
+            }
+            return false;
+        }
+
+        protected override void OnAfterSetup() {
+            Saver.Load();
+            ModLocalizationManager.Init();
+            Setting.Init(info);
+            KeyCodeConverter.Init();
+            if(!isInit)Init();
+        }
 
         private void OnModWillBeDeactivated(ModInfo arg1, Duckov.Modding.ModBehaviour arg2) {
             if (globalPanelUI.HasTitle(arg1)) {
                 globalPanelUI.RemoveTitle(arg1);
                 mainMenuPanelUI.RemoveTitle(arg1);
-                ConfigManager.RemoveMod(arg1);
                 Saver.UpdateConfig(ConfigManager.GetConfig(arg1));
+                ConfigManager.RemoveMod(arg1);
+                Logger.Info($"(Mod:{arg1.displayName})禁用,移除UI");
             }
         }
     }

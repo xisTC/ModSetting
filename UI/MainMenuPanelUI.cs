@@ -1,11 +1,12 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
+using Duckov.Modding;
 using Duckov.Options.UI;
 using ModSetting.Extensions;
-using TMPro;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 using UnityEngine.UI;
+using Logger = ModSetting.Log.Logger;
 
 namespace ModSetting.UI {
     public class MainMenuPanelUI : PanelUI {
@@ -17,20 +18,20 @@ namespace ModSetting.UI {
                 .FirstOrDefault(panel => panel.gameObject.scene.name == "MainMenu");
             save = new GameObject("save");
             DontDestroyOnLoad(save);
-            ImageLength = 100f;
             InitTab();
             InitPrefab();
             RectTransform scrollRectTransform = optionsPanel.GetComponentsInChildren<ScrollRect>(true)
                 .Select(scrollRect => scrollRect.GetComponent<RectTransform>())
                 .FirstOrDefault(item => item.name == "ScrollView");
-            if (scrollRectTransform == null) {
-                Debug.LogError("找不到scrollRect");
-                scrollRectLength = 1000f;
+            VerticalLayoutGroup verticalLayoutGroup = modContent.transform.parent?.GetComponent<VerticalLayoutGroup>();
+            if (scrollRectTransform == null||verticalLayoutGroup==null) {
+                uiLenght = 1416.03f;
+                Logger.Warning($"找不到scrollRect/verticalLayoutGroup,使用备用长度{uiLenght}");
             } else {
-                scrollRectLength = scrollRectTransform.sizeDelta.x;
+                uiLenght=scrollRectTransform.rect.width-(verticalLayoutGroup.padding.left + verticalLayoutGroup.padding.right);
             }
             IsInit = true;
-            Debug.Log("mod设置初始化完毕");
+            Logger.Info("主菜单设置初始化完毕");
         }
 
         public void ResetTab() {
@@ -40,13 +41,13 @@ namespace ModSetting.UI {
             List<OptionsPanel_TabButton> tabButtons =
                 optionsPanel.GetInstanceField<List<OptionsPanel_TabButton>>("tabButtons");
             if (tabButtons == null) {
-                Debug.LogError("反射获取tabButtons失败");
+                Logger.Error($"反射获取tabButtons失败,找不到字段tabButtons");
                 return;
             }
 
             OptionsPanel_TabButton tabButton = tabButtons.FirstOrDefault(item => item != null);
             if (tabButton == null) {
-                Debug.Log("找不到不为null的tab");
+                Logger.Error($"找不到不为null的tab");
                 return;
             }
 
@@ -57,27 +58,53 @@ namespace ModSetting.UI {
             optionsPanel.InvokeInstanceMethod("Setup");
             var tab = tabButton.GetInstanceField<GameObject>("tab");
             if (tab == null) {
-                Debug.LogError("无法反射获取tabButton的tab成员");
+                Logger.Error($"反射获取tabButton的tab成员失败");
                 return;
             }
 
             modContent.transform.SetParent(tab.transform.parent, false);
         }
 
+        protected override TitleUI AddOrGetTitle(ModInfo modInfo) {
+            if (titleUiDic.TryGetValue(modInfo.GetModId(), out var title)) return title;
+            if (modContent == null || titlePrefab == null) return null;
+            TitleUI titleUI = Instantiate(titlePrefab, modContent.transform);
+            titleUI.name += modInfo.name;
+            titleUI.Setup(modInfo.preview, modInfo.displayName, Setting.MainMenuTitleFontSize,Setting.MainMenuImageLength,uiLenght);
+            titleUiDic.Add(modInfo.GetModId(), titleUI);
+            return titleUI;
+        }
+
         protected override void ChildOnEnable() {
             SceneLoader.onStartedLoadingScene += OnStartedLoadingScene;
+            Setting.OnMainMenuTitleFontSizeChanged+= Setting_OnMainMenuTitleFontSizeChanged;
+            Setting.OnMainMenuImageLengthChanged+= Setting_OnMainMenuImageLengthChanged;
         }
 
         protected override void ChildOnDisable() {
             SceneLoader.onStartedLoadingScene -= OnStartedLoadingScene;
+            Setting.OnMainMenuTitleFontSizeChanged-= Setting_OnMainMenuTitleFontSizeChanged;
+            Setting.OnMainMenuImageLengthChanged-= Setting_OnMainMenuImageLengthChanged;
             DestroySafely(save);
+        }
+
+        private void Setting_OnMainMenuImageLengthChanged(float obj) {
+            foreach (TitleUI titleUI in titleUiDic.Values) {
+                titleUI.UpdateImageLength(obj);
+            }
+        }
+
+        private void Setting_OnMainMenuTitleFontSizeChanged(float obj) {
+            foreach (TitleUI titleUI in titleUiDic.Values) {
+                titleUI.UpdateFontSize(obj);
+            }
         }
 
         private void OnStartedLoadingScene(SceneLoadingContext sceneLoadingContext) {
             if (SceneManager.GetActiveScene().name == "MainMenu") {
                 modContent.transform.SetParent(save.transform, false);
                 modTabButton.transform.SetParent(save.transform, false);
-                Debug.Log("保存组件");
+                Logger.Info($"保存组件");
             }
         }
     }
