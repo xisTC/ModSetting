@@ -4,6 +4,7 @@ using System.Linq;
 using Duckov.Modding;
 using ModSetting.Config;
 using ModSetting.Extensions;
+using ModSetting.Pool;
 using ModSetting.UI;
 using SodaCraft.Localizations;
 using UnityEngine;
@@ -42,6 +43,7 @@ namespace ModSetting {
             ModLocalizationManager.Clear();
             KeyCodeConverter.Clear();
             Setting.Clear();
+            UIPool.Clear();
         }
 
         private void Update() {
@@ -52,6 +54,7 @@ namespace ModSetting {
             if (FindAnyObjectByType(typeof(MainMenu)) != null) {
                 if (!isInit) {
                     Logger.Info($"开始初始化mod设置");
+                    UIPrefabFactory.Init();
                     mainMenuPanelUI = gameObject.AddComponent<MainMenuPanelUI>();
                     globalPanelUI = gameObject.AddComponent<GlobalPanelUI>();
                     isInit = true;
@@ -62,7 +65,7 @@ namespace ModSetting {
         }
 
         private void ProcessPendingConfigs() {
-            if (!isInit ||!globalPanelUI.IsInit || !mainMenuPanelUI.IsInit) return;
+            if (!isInit ||!globalPanelUI.IsInit || !mainMenuPanelUI.IsInit|| !UIPrefabFactory.IsInit) return;
             if (actionQueue.Count == 0) return;
             while (actionQueue.Count > 0) {
                 Action action = actionQueue.Dequeue();
@@ -72,7 +75,7 @@ namespace ModSetting {
         }
 
         private static void AddAction(ModInfo modInfo,Action addConfigAction) {
-            if (isInit&&globalPanelUI.IsInit && mainMenuPanelUI.IsInit&&actionQueue.Count == 0) {
+            if (isInit&&globalPanelUI.IsInit && mainMenuPanelUI.IsInit&&UIPrefabFactory.IsInit &&actionQueue.Count == 0) {
                 try {
                     addConfigAction?.Invoke();
                 } catch (Exception e) {
@@ -150,7 +153,7 @@ namespace ModSetting {
             AddAction(modInfo,() => {
                 if (HasKey(modInfo, key)) return;
                 Logger.Info($"(Mod:{modInfo.displayName})添加按键绑定,key:{key}");
-                KeyBindingConfig keyBindingConfig = new KeyBindingConfig(key,description,keyCode,defaultKeyCode);
+                KeyBindingConfig keyBindingConfig = new KeyBindingConfig(modInfo,key,description,keyCode,defaultKeyCode);
                 ConfigManager.AddConfig(modInfo, keyBindingConfig);
                 List<KeyCode> keyCodes = ((KeyCode[])Enum.GetValues(typeof(KeyCode))).ToList();
                 globalPanelUI.AddKeybinding(modInfo, keyBindingConfig,keyCodes,onValueChange);
@@ -168,7 +171,7 @@ namespace ModSetting {
             AddAction(modInfo,() => {
                 if (HasKey(modInfo, key)) return;
                 Logger.Info($"(Mod:{modInfo.displayName})添加按键绑定,key:{key}");
-                KeyBindingConfig keyBindingConfig = new KeyBindingConfig(key,description,currentKey.ToKeyCode(),defaultKey.ToKeyCode());
+                KeyBindingConfig keyBindingConfig = new KeyBindingConfig(modInfo,key,description,currentKey.ToKeyCode(),defaultKey.ToKeyCode());
                 ConfigManager.AddConfig(modInfo, keyBindingConfig);
                 List<KeyCode> keyCodes = ((Key[])Enum.GetValues(typeof(Key))).Select(item=>item.ToKeyCode()).ToList();
                 globalPanelUI.AddKeybinding(modInfo, keyBindingConfig,keyCodes,keyCode=>onValueChange?.Invoke(keyCode.ToKey()));
@@ -248,7 +251,6 @@ namespace ModSetting {
         public static void RemoveUI(ModInfo modInfo, string key,Action<bool> callback=null) {
             AddAction(modInfo,() => {
                 if (ConfigManager.RemoveUI(modInfo, key)) {
-                    Logger.Info($"(Mod:{modInfo.displayName})移除ui,key:{key}");
                     if (globalPanelUI.RemoveUI(modInfo,key)&&mainMenuPanelUI.RemoveUI(modInfo,key)) {
                         callback?.Invoke(true);
                         return;

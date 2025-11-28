@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using Duckov.Modding;
 using Duckov.Options.UI;
@@ -13,13 +14,15 @@ namespace ModSetting.UI {
         private GameObject save;
 
         public override void Init() {
+            long timestamp = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
             if (IsInit) return;
             optionsPanel = FindObjectsOfType<OptionsPanel>(true)
                 .FirstOrDefault(panel => panel.gameObject.scene.name == "MainMenu");
             save = new GameObject("save");
             DontDestroyOnLoad(save);
             InitTab();
-            InitPrefab();
+            // InitPrefab();
+            Logger.Info($"初始化预制体完毕,使用时间: {DateTimeOffset.UtcNow.ToUnixTimeMilliseconds()-timestamp}ms");
             RectTransform scrollRectTransform = optionsPanel.GetComponentsInChildren<ScrollRect>(true)
                 .Select(scrollRect => scrollRect.GetComponent<RectTransform>())
                 .FirstOrDefault(item => item.name == "ScrollView");
@@ -31,7 +34,7 @@ namespace ModSetting.UI {
                 uiLenght=scrollRectTransform.rect.width-(verticalLayoutGroup.padding.left + verticalLayoutGroup.padding.right);
             }
             IsInit = true;
-            Logger.Info("主菜单设置初始化完毕");
+            Logger.Info($"主菜单设置初始化完毕,使用时间: {DateTimeOffset.UtcNow.ToUnixTimeMilliseconds()-timestamp}ms");
         }
 
         public void ResetTab() {
@@ -67,8 +70,9 @@ namespace ModSetting.UI {
 
         protected override TitleUI AddOrGetTitle(ModInfo modInfo) {
             if (titleUiDic.TryGetValue(modInfo.GetModId(), out var title)) return title;
-            if (modContent == null || titlePrefab == null) return null;
-            TitleUI titleUI = Instantiate(titlePrefab, modContent.transform);
+            if (modContent == null) return null;
+            // TitleUI titleUI = Instantiate(titlePrefab, modContent.transform);
+            TitleUI titleUI = UIPrefabFactory.Spawn<TitleUI>(modContent.transform);
             titleUI.name += modInfo.name;
             titleUI.Setup(modInfo.preview, modInfo.displayName, Setting.MainMenuTitleFontSize,Setting.MainMenuImageLength,uiLenght);
             titleUiDic.Add(modInfo.GetModId(), titleUI);

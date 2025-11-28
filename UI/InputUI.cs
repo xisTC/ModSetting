@@ -2,11 +2,12 @@ using System;
 using System.Collections.Generic;
 using System.Text;
 using ModSetting.Config;
+using ModSetting.Pool;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
 namespace ModSetting.UI {
-    public class InputUI : MonoBehaviour {
+    public class InputUI : PoolableBehaviour {
         [SerializeField]private TextMeshProUGUI label;
         [SerializeField]private TMP_InputField valueField;
         private string currentValue;

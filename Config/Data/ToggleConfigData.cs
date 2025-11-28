@@ -5,7 +5,7 @@ namespace ModSetting.Config.Data {
     public class ToggleConfigData  : IConfigData{
         public string Key { get; private set; }
         public string Description { get; private set; }
-        public UIType UIType => UIType.按钮;
+        public UIType UIType => UIType.开关;
         public int Liveness { get; set; } = 1;
         public T GetValue<T>() => (T)(object)Enable;
 

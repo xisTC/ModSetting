@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using Duckov.Modding;
 using ModSetting.Config.Data;
 using ModSetting.Extensions;
 using UnityEngine;
@@ -13,8 +14,9 @@ namespace ModSetting.Config {
         public KeyCode KeyCode { get; private set; }
         public KeyCode DefaultKeyCode { get; private set; }
         public event Action<KeyCode> OnValueChange;
-
-        public KeyBindingConfig(string key, string description,KeyCode keyCode,KeyCode defaultKeyCode) {
+        public ModInfo ModInfo { get; }
+        public KeyBindingConfig(ModInfo modInfo,string key, string description,KeyCode keyCode,KeyCode defaultKeyCode) {
+            ModInfo = modInfo;
             Key = key;
             Description = description;
             KeyCode = keyCode;

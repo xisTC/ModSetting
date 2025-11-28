@@ -1,23 +1,26 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using Duckov.Modding;
 using ModSetting.Config;
+using ModSetting.Pool;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
 using Logger = ModSetting.Log.Logger;
 
 namespace ModSetting.UI {
-    public class GroupUI : MonoBehaviour {
+    public class GroupUI : PoolableBehaviour {
         [SerializeField] private TextMeshProUGUI label;
-        private Dictionary<string, GameObject> settingDic = new();
+        private Dictionary<string, PoolableBehaviour> settingDic = new();
         private Dictionary<string, GroupUI> groupDic = new();
-        private List<GameObject> gameObjects = new();
+        private List<PoolableBehaviour> gameObjects = new();
         private bool lastExpandedState;
         private ModInfo modInfo;
         private float scale;
         private float height;
-
+        public event Action<string> OnNestGroupRemoved; 
+        public event Action<string> OnUIRemoved;
         private void Start() {
             HorizontalLayoutGroup layoutGroup = GetComponent<HorizontalLayoutGroup>();
             if (layoutGroup == null) return;
@@ -39,13 +42,14 @@ namespace ModSetting.UI {
             RectTransform rectTransform = label.GetComponent<RectTransform>();
             rectTransform.sizeDelta = label.GetPreferredValues(description);
             Image bg = GetComponent<Image>();
-            Button button = gameObject.AddComponent<Button>();
+            Button button = gameObject.GetComponent<Button>();
+            if(button==null)button=gameObject.AddComponent<Button>();
             button.image = bg;
             button.onClick.AddListener(OnClickButton);
         }
 
-        public void Add(string key, GameObject go) {
-            GameObject lastGo = GetEndGameObject();
+        public void Add(string key, PoolableBehaviour go) {
+            PoolableBehaviour lastGo = GetEndGameObject();
             if (!settingDic.TryAdd(key, go)) {
                 Logger.Error($"已经有此key的UI,添加至分组失败,key:{key}");
                 return;
@@ -54,45 +58,72 @@ namespace ModSetting.UI {
             Transform lastTransform = lastGo == null ? transform : lastGo.transform;
             int titleIndex = lastTransform.GetSiblingIndex();
             go.transform.SetSiblingIndex(titleIndex + 1);
-            go.SetActive(gameObject.activeSelf && lastGo != null && lastGo.activeSelf);
+            go.SetActive(gameObject.activeSelf && lastGo != null && lastGo.gameObject.activeSelf);
         }
 
         public bool RemoveUI(string key) {
-            if (settingDic.Remove(key, out var uiGameObject)) {
+            if (settingDic.Remove(key,out var uiGameObject)) {
                 gameObjects.Remove(uiGameObject);
-                groupDic.Remove(key);
-                Destroy(uiGameObject);
+                ConfigManager.RemoveUI(modInfo, key);
+                if (groupDic.Remove(key, out var groupUI)) {
+                    groupUI.RemoveAll();
+                    OnNestGroupRemoved?.Invoke(key);
+                    groupUI.OnNestGroupRemoved-=OnNestGroupRemoved;
+                    groupUI.OnUIRemoved-=OnUIRemoved;
+                } else {
+                    OnUIRemoved?.Invoke(key);
+                }
+                UIPrefabFactory.ReturnToPool(uiGameObject);
                 return true;
             }
             return false;
         }
 
-        public void Clear() {
+        public void RemoveAll() {
+            foreach (var (key, groupUI) in groupDic) {
+                groupUI.RemoveAll();
+                settingDic.Remove(key);
+                ConfigManager.RemoveUI(modInfo, key);
+                OnNestGroupRemoved?.Invoke(key);
+                groupUI.OnNestGroupRemoved-=OnNestGroupRemoved;
+                groupUI.OnUIRemoved-=OnUIRemoved;
+                UIPrefabFactory.ReturnToPool(groupUI);
+            }
+            groupDic.Clear();
+            foreach (var (key, uiGo) in settingDic) {
+                ConfigManager.RemoveUI(modInfo, key);
+                OnUIRemoved?.Invoke(key);
+                UIPrefabFactory.ReturnToPool(uiGo);
+            }
+            settingDic.Clear();
+            gameObjects.Clear();
+        }
+
+        private void Clear() {
             foreach (var (key, value) in settingDic) {
                 ConfigManager.RemoveUI(modInfo, key);
-                Destroy(value);
+                UIPrefabFactory.ReturnToPool(value);
             }
-
             settingDic.Clear();
             gameObjects.Clear();
             groupDic.Clear();
         }
 
-        public GameObject GetEndGameObject() {
-            List<GameObject> candidates = new();
-            GameObject endGroupGo = groupDic.Values
+        public PoolableBehaviour GetEndGameObject() {
+            List<PoolableBehaviour> candidates = new();
+            PoolableBehaviour endGroupGo = groupDic.Values
                 .OrderByDescending(groupUI => groupUI.transform.GetSiblingIndex())
                 .FirstOrDefault(ui => ui != null)?
                 .GetEndGameObject();
             if (endGroupGo != null) candidates.Add(endGroupGo);
-            GameObject endUI = gameObjects.LastOrDefault(ui => ui != null);
+            PoolableBehaviour endUI = gameObjects.LastOrDefault(ui => ui != null);
             if (endUI != null) candidates.Add(endUI);
             return candidates
                 .OrderByDescending(go => go.transform.GetSiblingIndex())
                 .FirstOrDefault(item => item != null);
         }
 
-        public bool Contains(GameObject go) {
+        public bool Contains(PoolableBehaviour go) {
             if(settingDic.Values.Contains(go)) return true;
             foreach (GroupUI groupUI in groupDic.Values) {
                 if (groupUI.Contains(go)) {
@@ -104,12 +135,12 @@ namespace ModSetting.UI {
 
         public void SetExpandedState(bool expanded) {
             if (expanded) {
-                foreach (GameObject ui in settingDic.Values) {
+                foreach (PoolableBehaviour ui in settingDic.Values) {
                     ui.SetActive(lastExpandedState);
                 }
             } else {
-                lastExpandedState = gameObjects.First().activeSelf;
-                foreach (GameObject ui in settingDic.Values) {
+                lastExpandedState = gameObjects.First().gameObject.activeSelf;
+                foreach (PoolableBehaviour ui in settingDic.Values) {
                     ui.SetActive(false);
                 }
             }
@@ -119,9 +150,10 @@ namespace ModSetting.UI {
             }
         }
 
-        private void OnDestroy() {
+        public override void OnRelease() {
             Clear();
         }
+        
 
         private void CreateTitle() {
             GameObject titleTextObject = new GameObject("TitleText");
@@ -132,10 +164,10 @@ namespace ModSetting.UI {
         }
 
         private void OnClickButton() {
-            GameObject firstObject = gameObjects.FirstOrDefault(item => item != null);
+            PoolableBehaviour firstObject = gameObjects.FirstOrDefault(item => item != null);
             if (firstObject == null) return;
-            bool activeSelf = !firstObject.activeSelf;
-            foreach (GameObject ui in settingDic.Values) {
+            bool activeSelf = !firstObject.gameObject.activeSelf;
+            foreach (PoolableBehaviour ui in settingDic.Values) {
                 ui.SetActive(activeSelf);
             }
             foreach (GroupUI groupUI in groupDic.Values) {
@@ -143,12 +175,12 @@ namespace ModSetting.UI {
             }
         }
 
-        public void MoveEnd() {
-            foreach (GameObject go in settingDic.Values) {
+        public void MoveToEnd() {
+            foreach (PoolableBehaviour go in settingDic.Values) {
                 go.transform.SetSiblingIndex(transform.parent.childCount - 1);
             }
             foreach (GroupUI groupUI in groupDic.Values) {
-                groupUI.MoveEnd();
+                groupUI.MoveToEnd();
             }
         }
 
@@ -157,7 +189,9 @@ namespace ModSetting.UI {
                 Logger.Error($"不能使用相同key,此key分组已存在,key:{key}");
                 return;
             }
-            Add(key, groupUI.gameObject);
+            groupUI.OnNestGroupRemoved += OnNestGroupRemoved;
+            groupUI.OnUIRemoved += OnUIRemoved;
+            Add(key, groupUI);
             if (!lastExpandedState) {
                 groupUI.SetExpandedState(false);
             }

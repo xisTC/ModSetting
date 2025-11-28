@@ -11,8 +11,11 @@ namespace ModSetting.Config.Data {
         无,
         下拉列表,
         滑块,
-        按钮,
+        开关,
         按键绑定,
-        输入框
+        输入框,
+        按钮,
+        标题,
+        分组
     }
 }

@@ -86,7 +86,7 @@ public class ConfigDataReadConverter : JsonConverter<IConfigData>
                 return jsonObject.ToObject<DropDownConfigData>(serializer);
             case UIType.滑块:
                 return jsonObject.ToObject<SliderConfigData>(serializer);
-            case UIType.按钮:
+            case UIType.开关:
                 return jsonObject.ToObject<ToggleConfigData>(serializer);
             case UIType.按键绑定:
                 return jsonObject.ToObject<KeyBindingConfigData>(serializer);

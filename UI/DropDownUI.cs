@@ -1,11 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
 using ModSetting.Config;
+using ModSetting.Pool;
 using TMPro;
 using UnityEngine;
 
 namespace ModSetting.UI {
-    public class DropDownUI : MonoBehaviour {
+    public class DropDownUI : PoolableBehaviour {
         [SerializeField]private TextMeshProUGUI label;
         [SerializeField]private TMP_Dropdown dropdown;
         private List<string> options;

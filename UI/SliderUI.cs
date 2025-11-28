@@ -1,11 +1,12 @@
 ﻿using System;
 using ModSetting.Config;
+using ModSetting.Pool;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
 
 namespace ModSetting.UI {
-    public class SliderUI : MonoBehaviour {
+    public class SliderUI : PoolableBehaviour {
         [SerializeField]private TextMeshProUGUI label;
         [SerializeField]private Slider slider;
         [SerializeField]private TMP_InputField valueField;

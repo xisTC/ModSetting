@@ -9,7 +9,6 @@ using Logger = ModSetting.Log.Logger;
 namespace ModSetting.Config {
     public static class ConfigManager {
         private static readonly Dictionary<string, ModConfig> configs = new();
-
         public static void AddConfig(ModInfo modInfo, IConfig config) {
             if (configs.TryGetValue(modInfo.GetModId(), out var modConfig)) {
                 modConfig.AddConfig(config);
@@ -37,8 +36,10 @@ namespace ModSetting.Config {
         public static bool HasKey(ModInfo modInfo, string key) =>
             configs.ContainsKey(modInfo.GetModId()) && configs[modInfo.GetModId()].HasKey(key);
 
-        public static bool RemoveUI(ModInfo info, string key) =>
-            configs.ContainsKey(info.GetModId()) && configs[info.GetModId()].RemoveKey(key);
+        public static bool RemoveUI(ModInfo info, string key) {
+            Logger.Info($"(Mod:{info.displayName})移除ui,key:{key}");
+            return configs.ContainsKey(info.GetModId()) && configs[info.GetModId()].RemoveKey(key);
+        }
 
         public static bool RemoveMod(ModInfo info) =>
             configs.ContainsKey(info.GetModId()) && configs[info.GetModId()].Clear()&& configs.Remove(info.GetModId());

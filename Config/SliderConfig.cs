@@ -39,7 +39,7 @@ namespace ModSetting.Config {
             }
             float floatValue = Convert.ToSingle(value);
             if (floatValue < SliderRange.x || floatValue > SliderRange.y) {
-                Logger.Error($"Slider不能超出范围:,value:{floatValue}");
+                Logger.Error($"Slider不能超出范围,key:{Key},value:{floatValue}");
             }
             SetValue(floatValue);
         }

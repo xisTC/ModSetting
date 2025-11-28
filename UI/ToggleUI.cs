@@ -1,11 +1,14 @@
 ﻿using System;
 using ModSetting.Config;
+using ModSetting.Config.Data;
+using ModSetting.Pool;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
+using Logger = ModSetting.Log.Logger;
 
 namespace ModSetting.UI {
-    public class ToggleUI : MonoBehaviour {
+    public class ToggleUI : PoolableBehaviour{
         [SerializeField]private TextMeshProUGUI label;
         [SerializeField]private Button button;
         [SerializeField]private TextMeshProUGUI text;
@@ -53,11 +56,13 @@ namespace ModSetting.UI {
             disableString = ModLocalizationManager.GetText(ModLocalizationManager.DISABLE);
             UpdateText();
         }
-
-        private void OnDestroy() {
-            ModLocalizationManager.onLanguageChanged -= OnLanguageChanged;
+        public override void OnGet() {
+            Logger.Info($"获取ToggleUI: {gameObject.name}");
         }
-
+        public override void OnRelease() {
+            ModLocalizationManager.onLanguageChanged -= OnLanguageChanged;
+            Logger.Info($"释放ToggleUI: {gameObject.name}");
+        }
         private void ToggleConfig_OnValueChange(bool obj) {
             enable = obj;
             UpdateText();

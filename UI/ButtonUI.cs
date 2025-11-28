@@ -1,15 +1,17 @@
 ﻿using System;
+using ModSetting.Pool;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
+using Logger = ModSetting.Log.Logger;
 
 namespace ModSetting.UI {
-    public class ButtonUI : MonoBehaviour {
+    public class ButtonUI : PoolableBehaviour {
         [SerializeField] private TextMeshProUGUI label;
         [SerializeField] private Button button;
         [SerializeField] private TextMeshProUGUI text;
         public event Action onClickButton;
-        private void Start() {
+        private void Awake() {
             if (button != null) button.onClick.AddListener(()=>onClickButton?.Invoke());
         }
         public void Init(TextMeshProUGUI label, Button button, TextMeshProUGUI text, string defaultDescription,

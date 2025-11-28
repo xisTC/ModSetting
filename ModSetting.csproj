@@ -645,6 +645,12 @@
         <Compile Include="Log\Logger.cs" />
         <Compile Include="ModBehaviour.cs" />
         <Compile Include="ModLocalizationManager.cs" />
+        <Compile Include="Pool\IPoolable.cs" />
+        <Compile Include="Pool\IPoolableSetting.cs" />
+        <Compile Include="Pool\PoolableBehaviour.cs" />
+        <Compile Include="Pool\PoolableSetting.cs" />
+        <Compile Include="Pool\UIPool.cs" />
+        <Compile Include="Pool\UIPrefabFactory.cs" />
         <Compile Include="Properties\AssemblyInfo.cs"/>
         <Compile Include="Saver.cs" />
         <Compile Include="Setting.cs" />

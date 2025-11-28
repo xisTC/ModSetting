@@ -1,12 +1,15 @@
 ﻿using System;
 using System.Collections.Generic;
+using Duckov.Modding;
 using ModSetting.Config;
+using ModSetting.Pool;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
+using Logger = ModSetting.Log.Logger;
 
 namespace ModSetting.UI {
-    public class KeyBindingUI : MonoBehaviour {
+    public class KeyBindingUI : PoolableBehaviour {
         [SerializeField]private TextMeshProUGUI label;
         [SerializeField]private Button rebindButton;
         [SerializeField]private Button clearButton;
@@ -18,6 +21,8 @@ namespace ModSetting.UI {
         private HashSet<KeyCode> validKeyCodes;
         public event Action<KeyCode> onValueChange;
         public KeyCode CurrentKey => newKeyCode;
+        private ModInfo modInfo;
+        private string key;
         private void Awake() {
             if (rebindButton != null) rebindButton.onClick.AddListener(OnClickBindingButton);
             if (clearButton != null) clearButton.onClick.AddListener(OnClickClearButton);
@@ -41,6 +46,8 @@ namespace ModSetting.UI {
         public void Setup(KeyBindingConfig keyBindingConfig,KeyBindingManager keyBindingManager,List<KeyCode> validKeyCodes) {
             label.text = keyBindingConfig.Description;
             defaultKeyCode = keyBindingConfig.DefaultKeyCode;
+            modInfo = keyBindingConfig.ModInfo;
+            key=keyBindingConfig.Key;
             this.keyBindingManager = keyBindingManager;
             onValueChange += keyBindingConfig.SetValue;
             keyBindingConfig.OnValueChange +=SetNewKey;
@@ -83,6 +90,10 @@ namespace ModSetting.UI {
             if(isWaitingForInput)CancelRebinding();
         }
 
+        public override void OnRelease() {
+            keyBindingManager.RemoveModKeyBinding(modInfo,key);
+            Logger.Info($"移除keyBindingManager的按键绑定,key:{key}");
+        }
         public void CancelRebinding() {
             rebindButton.interactable = true;
             isWaitingForInput = false;

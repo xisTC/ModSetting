@@ -5,7 +5,9 @@ using Duckov.Modding;
 using Duckov.Options.UI;
 using Duckov.Utilities;
 using ModSetting.Config;
+using ModSetting.Config.Data;
 using ModSetting.Extensions;
+using ModSetting.Pool;
 using SodaCraft.Localizations;
 using TMPro;
 using UnityEngine;
@@ -129,6 +131,8 @@ namespace ModSetting.UI {
                 titlePrefab = titleCloneGameObject.AddComponent<TitleUI>();
                 titlePrefab.Init();
                 titlePrefab.name = "标题";
+                PoolableSetting<TitleUI> titleSetting = new PoolableSetting<TitleUI>(UIType.标题,titlePrefab.gameObject);
+                UIPool.AddSetting(titleSetting);
                 Logger.Info($"成功创建titlePrefab预制体");
             }
         }
@@ -163,6 +167,7 @@ namespace ModSetting.UI {
                 togglePrefab = toggleCloneGameObject.AddComponent<ToggleUI>();
                 togglePrefab.Init(label, rebindButton, text, "toggle默认文本");
                 togglePrefab.name = "开关";
+                UIPool.AddSetting(new PoolableSetting<ToggleUI>(UIType.开关,togglePrefab.gameObject));
                 Logger.Info($"成功创建togglePrefab预制体");
             }
         }
@@ -259,71 +264,80 @@ namespace ModSetting.UI {
         #region 添加组件
         public bool AddDropDownList(ModInfo modInfo, DropDownConfig dropDownConfig,
             Action<string> onValueChange = null) {
-            if (modContent == null || dropDownPrefab == null) return false;
-            DropDownUI dropDownUI = Instantiate(dropDownPrefab, modContent.transform);
+            if (modContent == null) return false;
+            // DropDownUI dropDownUI = Instantiate(dropDownPrefab, modContent.transform);
+            DropDownUI dropDownUI = UIPrefabFactory.Spawn<DropDownUI>(modContent.transform);
             dropDownUI.name += dropDownConfig.Key;
             dropDownUI.Setup(dropDownConfig);
             dropDownUI.onValueChange += onValueChange;
-            AddUnderTheTitle(modInfo, dropDownConfig.Key, dropDownUI.gameObject);
+            AddUnderTheTitle(modInfo, dropDownConfig.Key, dropDownUI);
             return true;
         }
 
         public bool AddSlider(ModInfo modInfo, SliderConfig sliderConfig, Action<float> onValueChange = null) {
-            if (modContent == null || sliderPrefab == null) return false;
-            SliderUI sliderUI = Instantiate(sliderPrefab, modContent.transform);
+            if (modContent == null) return false;
+            // SliderUI sliderUI = Instantiate(sliderPrefab, modContent.transform);
+            SliderUI sliderUI = UIPrefabFactory.Spawn<SliderUI>(modContent.transform);
             sliderUI.name += sliderConfig.Key;
             sliderUI.Setup(sliderConfig);
             sliderUI.onValueChange += onValueChange;
-            AddUnderTheTitle(modInfo, sliderConfig.Key, sliderUI.gameObject);
+            AddUnderTheTitle(modInfo, sliderConfig.Key, sliderUI);
             return true;
         }
 
         public bool AddToggle(ModInfo modInfo, ToggleConfig toggleConfig, Action<bool> onValueChange = null) {
-            if (modContent == null || togglePrefab == null) return false;
-            ToggleUI toggleUI = Instantiate(togglePrefab, modContent.transform);
+            if (modContent == null) return false;
+            // ToggleUI toggleUI = Instantiate(togglePrefab, modContent.transform);
+            // ToggleUI toggleUI =(ToggleUI)UIPool.Spawn(UIType.开关,modContent.transform);
+            // ToggleUI toggleUI =(ToggleUI)UIPrefabFactory.Spawn(UIType.开关,modContent.transform);
+            ToggleUI toggleUI = UIPrefabFactory.Spawn<ToggleUI>(modContent.transform);
             toggleUI.name += toggleConfig.Key;
             toggleUI.Setup(toggleConfig);
             toggleUI.onValueChange += onValueChange;
-            AddUnderTheTitle(modInfo, toggleConfig.Key, toggleUI.gameObject);
+            AddUnderTheTitle(modInfo, toggleConfig.Key, toggleUI);
             return true;
         }
 
         public bool AddKeybinding(ModInfo modInfo, KeyBindingConfig keyBindingConfig,List<KeyCode> validKeyCodes,
             Action<KeyCode> onValueChange = null) {
-            if (modContent == null || keyBindEntryPrefab == null) return false;
-            KeyBindingUI keyBindingUI = Instantiate(keyBindEntryPrefab, modContent.transform);
+            if (modContent == null) return false;
+            // KeyBindingUI keyBindingUI = Instantiate(keyBindEntryPrefab, modContent.transform);
+            KeyBindingUI keyBindingUI = UIPrefabFactory.Spawn<KeyBindingUI>(modContent.transform);
             keyBindingUI.name += keyBindingConfig.Key;
             keyBindingUI.Setup(keyBindingConfig, keyBindingManager,validKeyCodes);
             keyBindingManager.AddModKeyBinding(modInfo, keyBindingConfig.Key, keyBindingUI);
             keyBindingUI.onValueChange += onValueChange;
-            AddUnderTheTitle(modInfo, keyBindingConfig.Key, keyBindingUI.gameObject);
+            AddUnderTheTitle(modInfo, keyBindingConfig.Key, keyBindingUI);
             return true;
         }
         public bool AddInput(ModInfo modInfo, InputConfig inputConfig, Action<string> onValueChange) {
-            if (modContent == null || inputPrefab == null) return false;
-            InputUI inputUI = Instantiate(inputPrefab, modContent.transform);
+            if (modContent == null) return false;
+            // InputUI inputUI = Instantiate(inputPrefab, modContent.transform);
+            InputUI inputUI = UIPrefabFactory.Spawn<InputUI>(modContent.transform);
             inputUI.name += inputConfig.Key;
             inputUI.Setup(inputConfig);
             inputUI.onValueChange += onValueChange;
-            AddUnderTheTitle(modInfo, inputConfig.Key, inputUI.gameObject);
+            AddUnderTheTitle(modInfo, inputConfig.Key, inputUI);
             return true;
         }
 
         public bool AddButton(ModInfo modInfo,string key,string description, string buttonText,Action onClickButton) {
-            if (modContent == null || buttonPrefab == null) return false;
-            ButtonUI buttonUI = Instantiate(buttonPrefab, modContent.transform);
+            if (modContent == null) return false;
+            // ButtonUI buttonUI = Instantiate(buttonPrefab, modContent.transform);
+            ButtonUI buttonUI = UIPrefabFactory.Spawn<ButtonUI>(modContent.transform);
             buttonUI.name += key;
             buttonUI.Setup(description, buttonText);
             buttonUI.onClickButton += onClickButton;
-            AddUnderTheTitle(modInfo, key, buttonUI.gameObject);
+            AddUnderTheTitle(modInfo, key, buttonUI);
             return true;
         }
 
         public bool AddGroup(ModInfo modInfo, string key, string description, List<string> keys, float scale,bool top,bool open) {
-            if (modContent == null || groupPrefab == null) return false;
+            if (modContent == null) return false;
             if (keys.Contains(key)) return false;
             TitleUI titleUI = AddOrGetTitle(modInfo);
-            GroupUI groupUI = Instantiate(groupPrefab, modContent.transform);
+            // GroupUI groupUI = Instantiate(groupPrefab, modContent.transform);
+            GroupUI groupUI = UIPrefabFactory.Spawn<GroupUI>(modContent.transform);
             groupUI.name += key;
             groupUI.Setup(modInfo,description,keys,scale,open);
             titleUI.AddGroup(key,groupUI,keys,top);
@@ -331,7 +345,6 @@ namespace ModSetting.UI {
         }
         public bool RemoveUI(ModInfo modInfo, string key) {
             if (titleUiDic.TryGetValue(modInfo.GetModId(), out var titleUI)) {
-                keyBindingManager.RemoveModKeyBinding(modInfo, key);
                 return titleUI.RemoveUI(key);
             }
             return false;
@@ -349,7 +362,7 @@ namespace ModSetting.UI {
 
         public bool HasTitle(ModInfo info) => titleUiDic.ContainsKey(info.GetModId());
 
-        private void AddUnderTheTitle(ModInfo modInfo, string key, GameObject uiGo) {
+        private void AddUnderTheTitle(ModInfo modInfo, string key, PoolableBehaviour uiGo) {
             TitleUI titleUI = AddOrGetTitle(modInfo);
             titleUI.Add(key, uiGo);
         }
@@ -364,6 +377,7 @@ namespace ModSetting.UI {
         }
 
         private void OnDisable() {
+            UIPool.Clear();
             //还要移除panel中的引用
             List<OptionsPanel_TabButton> tabButtons =
                 optionsPanel.GetInstanceField<List<OptionsPanel_TabButton>>("tabButtons");
