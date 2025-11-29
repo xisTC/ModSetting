@@ -4,6 +4,7 @@ using System.Linq;
 using Duckov.Modding;
 using Duckov.Options.UI;
 using ModSetting.Extensions;
+using ModSetting.Pool;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 using UnityEngine.UI;
@@ -19,10 +20,8 @@ namespace ModSetting.UI {
             optionsPanel = FindObjectsOfType<OptionsPanel>(true)
                 .FirstOrDefault(panel => panel.gameObject.scene.name == "MainMenu");
             save = new GameObject("save");
-            DontDestroyOnLoad(save);
+            save.transform.SetParent(Setting.Parent);
             InitTab();
-            // InitPrefab();
-            Logger.Info($"初始化预制体完毕,使用时间: {DateTimeOffset.UtcNow.ToUnixTimeMilliseconds()-timestamp}ms");
             RectTransform scrollRectTransform = optionsPanel.GetComponentsInChildren<ScrollRect>(true)
                 .Select(scrollRect => scrollRect.GetComponent<RectTransform>())
                 .FirstOrDefault(item => item.name == "ScrollView");
@@ -71,7 +70,6 @@ namespace ModSetting.UI {
         protected override TitleUI AddOrGetTitle(ModInfo modInfo) {
             if (titleUiDic.TryGetValue(modInfo.GetModId(), out var title)) return title;
             if (modContent == null) return null;
-            // TitleUI titleUI = Instantiate(titlePrefab, modContent.transform);
             TitleUI titleUI = UIPrefabFactory.Spawn<TitleUI>(modContent.transform);
             titleUI.name += modInfo.name;
             titleUI.Setup(modInfo.preview, modInfo.displayName, Setting.MainMenuTitleFontSize,Setting.MainMenuImageLength,uiLenght);

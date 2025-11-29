@@ -27,5 +27,10 @@ namespace ModSetting.UI {
             label.text = description;
             text.text = buttonText;
         }
+
+        public override void OnRelease() {
+            base.OnRelease();
+            onClickButton = null;
+        }
     }
 }

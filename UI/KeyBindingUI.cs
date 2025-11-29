@@ -91,8 +91,9 @@ namespace ModSetting.UI {
         }
 
         public override void OnRelease() {
+            base.OnRelease();
             keyBindingManager.RemoveModKeyBinding(modInfo,key);
-            Logger.Info($"移除keyBindingManager的按键绑定,key:{key}");
+            onValueChange=null;
         }
         public void CancelRebinding() {
             rebindButton.interactable = true;

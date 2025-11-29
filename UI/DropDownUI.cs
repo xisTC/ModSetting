@@ -11,7 +11,6 @@ namespace ModSetting.UI {
         [SerializeField]private TMP_Dropdown dropdown;
         private List<string> options;
         private string currentOption;
-        private string defaultOption;
         private string description;
         public event Action<string> onValueChange; 
         public void Init(TextMeshProUGUI label,TMP_Dropdown dropdown,string defaultDescription, List<string> defaultOptions,string defaultOption) {
@@ -19,18 +18,23 @@ namespace ModSetting.UI {
             this.dropdown = dropdown;
             label.text = description;
             options = defaultOptions;
-            currentOption = this.defaultOption=defaultOption;
+            currentOption=defaultOption;
         }
 
         public void Setup(DropDownConfig dropDownConfig) {
             description = dropDownConfig.Description;
             label.text = description;
             options = dropDownConfig.Options;
-            currentOption = defaultOption = dropDownConfig.Value;
+            currentOption = dropDownConfig.Value;
             dropDownConfig.OnValueChange += DropDownConfig_OnValueChange;
             onValueChange += dropDownConfig.SetValue;
             dropdown.onValueChanged.AddListener(Dropdown_OnValueChanged);
             UpdateDropDown();
+        }
+
+        public override void OnRelease() {
+            base.OnRelease();
+            onValueChange=null;
         }
 
         private void Dropdown_OnValueChanged(int index) {

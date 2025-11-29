@@ -41,6 +41,11 @@ namespace ModSetting.UI {
             UpdateValue();
         }
 
+        public override void OnRelease() {
+            base.OnRelease();
+            onValueChange = null;
+        }
+
         private void Slider_OnValueChanged(float value) {
             currentValue = RoundToDecimalPlaces(value);
             onValueChange?.Invoke(currentValue);

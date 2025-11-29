@@ -1,11 +1,9 @@
 ﻿using System;
 using ModSetting.Config;
-using ModSetting.Config.Data;
 using ModSetting.Pool;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
-using Logger = ModSetting.Log.Logger;
 
 namespace ModSetting.UI {
     public class ToggleUI : PoolableBehaviour{
@@ -56,12 +54,10 @@ namespace ModSetting.UI {
             disableString = ModLocalizationManager.GetText(ModLocalizationManager.DISABLE);
             UpdateText();
         }
-        public override void OnGet() {
-            Logger.Info($"获取ToggleUI: {gameObject.name}");
-        }
         public override void OnRelease() {
+            base.OnRelease();
             ModLocalizationManager.onLanguageChanged -= OnLanguageChanged;
-            Logger.Info($"释放ToggleUI: {gameObject.name}");
+            onValueChange=null;
         }
         private void ToggleConfig_OnValueChange(bool obj) {
             enable = obj;

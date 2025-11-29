@@ -11,6 +11,17 @@ namespace ModSetting.Pool {
         private static int maxSize = 100;
         private static readonly Dictionary<UIType, IObjectPool<PoolableBehaviour>> pools = new();
         private static List<IPoolableSetting> settings = new();
+        private static Transform poolParent;
+        public static Transform PoolParent {
+            get {
+                if (poolParent == null) {
+                    poolParent = new GameObject(nameof(poolParent)).transform;
+                    poolParent.SetParent(Setting.Parent,false);
+                }
+                return poolParent;
+            }
+        }
+
         public static PoolableBehaviour Spawn(UIType uiType,Transform parent=null) {
             IPoolableSetting poolableSetting = GetIPoolableSetting(uiType);
             PoolableBehaviour poolableBehaviour = Spawn(poolableSetting);

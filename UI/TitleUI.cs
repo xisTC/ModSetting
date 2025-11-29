@@ -11,6 +11,7 @@ namespace ModSetting.UI {
     public class TitleUI : PoolableBehaviour {
         [SerializeField] private TextMeshProUGUI label;
         [SerializeField] private Image icon;
+        [SerializeField] private Button button;
         private Texture2D preview;
         private PoolableBehaviour endGameObject;
         private float maxLength;
@@ -36,7 +37,8 @@ namespace ModSetting.UI {
             layoutGroup.padding = new RectOffset(10, 10, 10, 10);
         }
 
-        public void Init() {
+        public void Init(Button button) {
+            this.button = button;
             CreateTitle();
             CreateImage();
         }
@@ -52,11 +54,6 @@ namespace ModSetting.UI {
                 icon.sprite = Sprite.Create(preview, new Rect(0, 0, preview.width, preview.height),
                     new Vector2(0.5f, 0.5f));
             UpdateImageLength(imageLength);
-            Image bg = GetComponent<Image>();
-            Button button = gameObject.GetComponent<Button>();
-            if (button == null) button = gameObject.AddComponent<Button>();
-            button.image = bg;
-            button.onClick.AddListener(OnClickButton);
         }
 
         private void CreateTitle() {
@@ -173,6 +170,9 @@ namespace ModSetting.UI {
             settingDic.Clear();
             groupDic.Clear();
             uiToGroupMap.Clear();
+            nestGroupMap.Clear();
+            endGameObject = null;
+            button.onClick.RemoveAllListeners();
         }
 
         public void AddGroup(string key, GroupUI groupUI, List<string> keys, bool top) {
@@ -284,6 +284,16 @@ namespace ModSetting.UI {
                     groupUI.UpdateHeight(height);
                 }
             }
+        }
+
+        public override void OnGet() {
+            base.OnGet();
+            button.onClick.AddListener(OnClickButton);
+        }
+
+        public override void OnRelease() {
+            base.OnRelease();
+            Clear();
         }
 
         private void GroupUI_OnNestGroupRemoved(string obj) {

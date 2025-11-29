@@ -12,6 +12,7 @@ using Logger = ModSetting.Log.Logger;
 namespace ModSetting.UI {
     public class GroupUI : PoolableBehaviour {
         [SerializeField] private TextMeshProUGUI label;
+        [SerializeField] private Button button;
         private Dictionary<string, PoolableBehaviour> settingDic = new();
         private Dictionary<string, GroupUI> groupDic = new();
         private List<PoolableBehaviour> gameObjects = new();
@@ -30,7 +31,8 @@ namespace ModSetting.UI {
             layoutGroup.childForceExpandWidth = false;
         }
 
-        public void Init() {
+        public void Init(Button button) {
+            this.button = button;
             CreateTitle();
         }
 
@@ -41,11 +43,6 @@ namespace ModSetting.UI {
             this.scale = scale;
             RectTransform rectTransform = label.GetComponent<RectTransform>();
             rectTransform.sizeDelta = label.GetPreferredValues(description);
-            Image bg = GetComponent<Image>();
-            Button button = gameObject.GetComponent<Button>();
-            if(button==null)button=gameObject.AddComponent<Button>();
-            button.image = bg;
-            button.onClick.AddListener(OnClickButton);
         }
 
         public void Add(string key, PoolableBehaviour go) {
@@ -107,6 +104,9 @@ namespace ModSetting.UI {
             settingDic.Clear();
             gameObjects.Clear();
             groupDic.Clear();
+            OnNestGroupRemoved = null;
+            OnUIRemoved = null;
+            button.onClick.RemoveAllListeners();
         }
 
         public PoolableBehaviour GetEndGameObject() {
@@ -150,10 +150,29 @@ namespace ModSetting.UI {
             }
         }
 
+        public override void OnGet() {
+            base.OnGet();
+            button.onClick.AddListener(OnClickButton);
+        }
+
         public override void OnRelease() {
+            base.OnRelease();
             Clear();
         }
-        
+
+
+        public void AddGroup(string key, GroupUI groupUI) {
+            if (!groupDic.TryAdd(key, groupUI)) {
+                Logger.Error($"不能使用相同key,此key分组已存在,key:{key}");
+                return;
+            }
+            groupUI.OnNestGroupRemoved += OnNestGroupRemoved;
+            groupUI.OnUIRemoved += OnUIRemoved;
+            Add(key, groupUI);
+            if (!lastExpandedState) {
+                groupUI.SetExpandedState(false);
+            }
+        }
 
         private void CreateTitle() {
             GameObject titleTextObject = new GameObject("TitleText");
@@ -181,19 +200,6 @@ namespace ModSetting.UI {
             }
             foreach (GroupUI groupUI in groupDic.Values) {
                 groupUI.MoveToEnd();
-            }
-        }
-
-        public void AddGroup(string key, GroupUI groupUI) {
-            if (!groupDic.TryAdd(key, groupUI)) {
-                Logger.Error($"不能使用相同key,此key分组已存在,key:{key}");
-                return;
-            }
-            groupUI.OnNestGroupRemoved += OnNestGroupRemoved;
-            groupUI.OnUIRemoved += OnUIRemoved;
-            Add(key, groupUI);
-            if (!lastExpandedState) {
-                groupUI.SetExpandedState(false);
             }
         }
 

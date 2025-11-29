@@ -14,7 +14,6 @@ namespace ModSetting.UI {
             optionsPanel = FindObjectsOfType<OptionsPanel>(true)
                 .FirstOrDefault(panel => panel.gameObject.scene.name == "DontDestroyOnLoad");
             InitTab();
-            // InitPrefab();
             IsInit = true;
             Logger.Info($"游戏内设置初始化完毕,使用时间: {DateTimeOffset.UtcNow.ToUnixTimeMilliseconds()-timestamp}ms");
         }
@@ -22,7 +21,6 @@ namespace ModSetting.UI {
         protected override TitleUI AddOrGetTitle(ModInfo modInfo) {
             if (titleUiDic.TryGetValue(modInfo.GetModId(), out var title)) return title;
             if (modContent == null) return null;
-            // TitleUI titleUI = Instantiate(titlePrefab, modContent.transform);
             TitleUI titleUI = UIPrefabFactory.Spawn<TitleUI>(modContent.transform);
             titleUI.name += modInfo.name;
             titleUI.Setup(modInfo.preview, modInfo.displayName, Setting.GlobalTitleFontSize,Setting.GlobalTitleImageLength,uiLenght);

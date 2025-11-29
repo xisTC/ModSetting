@@ -47,6 +47,11 @@ namespace ModSetting.UI {
             UpdateValue();
         }
 
+        public override void OnRelease() {
+            base.OnRelease();
+            onValueChange = null;
+        }
+
         private void InputField_OnEndEdit(string value) {
             currentValue = FilterInvalidChars(value);
             onValueChange?.Invoke(currentValue);

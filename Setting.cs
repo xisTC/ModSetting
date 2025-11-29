@@ -6,6 +6,7 @@ using ModSetting.Api;
 using ModSetting.Log;
 using UnityEngine;
 using Logger = ModSetting.Log.Logger;
+using Object = UnityEngine.Object;
 
 namespace ModSetting {
     public static class Setting {
@@ -23,9 +24,10 @@ namespace ModSetting {
         public static event Action<float> OnTitleSpaceChanged;
 
         private static void SetLogLevel(LogLevel logLevel) {
-            Logger.Info("改变日志等级:"+logLevel);
+            Logger.Info("改变日志等级:" + logLevel);
             LogLevel = logLevel;
         }
+
         private static void SetMainMenuTitleFontSize(float fontSize) {
             MainMenuTitleFontSize = fontSize;
             OnMainMenuTitleFontSizeChanged?.Invoke(fontSize);
@@ -51,21 +53,32 @@ namespace ModSetting {
             OnTitleSpaceChanged?.Invoke(space);
         }
 
+        public static Transform Parent { get; private set; }
+
         public static void Init(ModInfo modInfo) {
             ModLocalizationManager.onLanguageChanged += OnLanguageChanged;
+            Parent = new GameObject("ModSetting").transform;
+            Object.DontDestroyOnLoad(Parent);
             builder = SettingsBuilder.Create(modInfo);
             LogLevel = builder.GetSavedValue(nameof(LogLevel), out string logLevelString)
-                ? Enum.TryParse(ModLocalizationManager.GetKey(logLevelString), out LogLevel logLevel) ? logLevel: LogLevel.Warning:LogLevel.Warning;
+                ? Enum.TryParse(ModLocalizationManager.GetKey(logLevelString), out LogLevel logLevel)
+                    ? logLevel
+                    : LogLevel.Warning
+                : LogLevel.Warning;
             MainMenuTitleFontSize =
-                builder.GetSavedValue(nameof(MainMenuTitleFontSize), out float mainMenuTitleFontSize) 
-                    ? mainMenuTitleFontSize : 36f;
+                builder.GetSavedValue(nameof(MainMenuTitleFontSize), out float mainMenuTitleFontSize)
+                    ? mainMenuTitleFontSize
+                    : 36f;
             MainMenuImageLength = builder.GetSavedValue(nameof(MainMenuImageLength), out float mainMenuImageLength)
-                ? mainMenuImageLength : 100f;
+                ? mainMenuImageLength
+                : 100f;
             GlobalTitleFontSize = builder.GetSavedValue(nameof(GlobalTitleFontSize), out float globalTitleFontSize)
-                ? globalTitleFontSize : 36f;
+                ? globalTitleFontSize
+                : 36f;
             GlobalTitleImageLength =
                 builder.GetSavedValue(nameof(GlobalTitleImageLength), out float globalTitleImageLength)
-                    ? globalTitleImageLength : 50f;
+                    ? globalTitleImageLength
+                    : 50f;
             TitleSpace = builder.GetSavedValue(nameof(TitleSpace), out float titleSpace) ? titleSpace : 200f;
             AddUI();
         }
@@ -89,24 +102,24 @@ namespace ModSetting {
                         string key = ModLocalizationManager.GetKey(text);
                         SetLogLevel(Enum.Parse<LogLevel>(key));
                     })
-                .AddSlider(nameof(MainMenuTitleFontSize), 
+                .AddSlider(nameof(MainMenuTitleFontSize),
                     ModLocalizationManager.GetText(ModLocalizationManager.MAIN_MENU_TITLE_FONT_SIZE_DESCRIPTION),
                     MainMenuTitleFontSize, new Vector2(0, 50f), SetMainMenuTitleFontSize)
-                .AddSlider(nameof(MainMenuImageLength), 
+                .AddSlider(nameof(MainMenuImageLength),
                     ModLocalizationManager.GetText(ModLocalizationManager.MAIN_MENU_IMAGE_LENGTH_DESCRIPTION),
                     MainMenuImageLength, new Vector2(0, 300f), SetMainMenuImageLength)
-                .AddSlider(nameof(GlobalTitleFontSize), 
-                      ModLocalizationManager.GetText(ModLocalizationManager.GLOBAL_TITLE_FONT_SIZE_DESCRIPTION),
+                .AddSlider(nameof(GlobalTitleFontSize),
+                    ModLocalizationManager.GetText(ModLocalizationManager.GLOBAL_TITLE_FONT_SIZE_DESCRIPTION),
                     GlobalTitleFontSize, new Vector2(0, 60f), SetGlobalTitleFontSize)
-                .AddSlider(nameof(GlobalTitleImageLength), 
+                .AddSlider(nameof(GlobalTitleImageLength),
                     ModLocalizationManager.GetText(ModLocalizationManager.GLOBAL_TITLE_IMAGE_LENGTH_DESCRIPTION),
                     GlobalTitleImageLength, new Vector2(0, 300f), SetGlobalTitleImageLength)
-                .AddSlider(nameof(TitleSpace), 
+                .AddSlider(nameof(TitleSpace),
                     ModLocalizationManager.GetText(ModLocalizationManager.TITLE_SPACE_DESCRIPTION),
                     TitleSpace, new Vector2(0, 500f), SetTitleSpace)
                 .AddButton("Reset",
                     ModLocalizationManager.GetText(ModLocalizationManager.RESET_DESCRIPTION),
-                    ModLocalizationManager.GetText(ModLocalizationManager.RESET_BUTTON_TEXT),Reset);
+                    ModLocalizationManager.GetText(ModLocalizationManager.RESET_BUTTON_TEXT), Reset);
         }
 
         private static void OnLanguageChanged(SystemLanguage obj) {
