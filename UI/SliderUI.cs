@@ -44,6 +44,8 @@ namespace ModSetting.UI {
         public override void OnRelease() {
             base.OnRelease();
             onValueChange = null;
+            slider.onValueChanged.RemoveListener(Slider_OnValueChanged);
+            valueField.onEndEdit.RemoveListener(InputField_OnEndEdit);
         }
 
         private void Slider_OnValueChanged(float value) {
